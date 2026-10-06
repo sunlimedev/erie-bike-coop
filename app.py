@@ -1,7 +1,6 @@
 
 
 
-
 # ------------------ imports -------------------------------------------------------------------------------------------
 
 
@@ -9,18 +8,17 @@ import csv
 
 from pathlib import Path
 from datetime import datetime
-from flask import Flask, render_template, request
+from flask import Flask, render_template
 from flask_login import LoginManager, UserMixin
 
 from forms import SignInForm
+from data import backup
 
 
 # ------------------ constants -----------------------------------------------------------------------------------------
 
 
-# location to store csv files
-CSV_PATH = Path("logs")
-CSV_PATH.mkdir(parents=True, exist_ok=True)
+
 
 
 # ------------------ flask config --------------------------------------------------------------------------------------
@@ -28,14 +26,16 @@ CSV_PATH.mkdir(parents=True, exist_ok=True)
 
 app = Flask(__name__)
 
-app.config['SECRET_KEY'] = 'awsdkfhjdgbkajsuhdvfkjhvasdkjfvaksdjvf'
+app.config['SECRET_KEY'] = 'bicycle'
 
+# not doing anything at the moment
 login_manager = LoginManager(app)
 
 
 # ------------------ classes -------------------------------------------------------------------------------------------
 
 
+# not currently used but here for the future
 class User(UserMixin):
     def __init__(self, user_id, username, hashed_password):
         self.id = user_id
@@ -55,26 +55,32 @@ def greeter():
     # POST
     if form.validate_on_submit():
         now = datetime.now()
-        today = now.strftime("%Y-%m-%d")
+        year = now.strftime("%Y")
+        month_day = now.strftime("%m-%d")
         timestamp = now.strftime("%Y-%m-%d %H:%M:%S")
 
-        file_path = CSV_PATH / f"{today}.csv"
+        # dynamically create csv file for logging
+        file_path = Path(f"{year}/{month_day}.csv")
+        file_path.parent.mkdir(parents=True, exist_ok=True)
 
-        headers = ["Date", "Name", "Type", "Reason", "Email", "Phone", "Hours"]
+        # column names for csv
+        columns = ["Date", "Name", "Type", "Reason", "Email", "Phone", "Hours"]
 
-        reason = ""
-
+        # creates a new file on a new month or a fresh install
         if not file_path.is_file():
             with open(file_path, mode="w", newline="", encoding="utf-8") as file:
                 writer = csv.writer(file)
-                writer.writerow(headers)
+                writer.writerow(columns)
 
+            backup()
+
+        # grab the correct reason data if present
         if form.type.data == "visitor":
             if not form.visitor_reason.data:
                 reason = ""
             else:
                 reason = form.visitor_reason.data
-        if form.type.data == "volunteer":
+        else:
             if not form.volunteer_reason.data:
                 reason = ""
             else:
@@ -103,6 +109,7 @@ def greeter():
 # ------------------ helper functions ----------------------------------------------------------------------------------
 
 
+# glue code to make the server not freak out
 @login_manager.user_loader
 def load_user():
     return User("a", "a", "a")

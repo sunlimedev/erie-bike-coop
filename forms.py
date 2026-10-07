@@ -1,6 +1,7 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, EmailField, RadioField, SubmitField, TelField
-from wtforms.validators import InputRequired, EqualTo, Length, Optional
+from wtforms import StringField, EmailField, RadioField, SubmitField, TelField, SelectMultipleField
+from wtforms.validators import InputRequired, Optional
+from wtforms.widgets.core import CheckboxInput, ListWidget
 
 
 class SignInForm(FlaskForm):
@@ -51,5 +52,17 @@ class SignInForm(FlaskForm):
         validators=[Optional()]
     )
     submit = SubmitField(
-        label="Done!"
+        label="Sign in"
+    )
+
+
+class SignOutForm(FlaskForm):
+    names = SelectMultipleField(
+        label="Current Volunteers",
+        choices=[],
+        option_widget=CheckboxInput(),
+        widget=ListWidget(prefix_label=False) # type: ignore
+    )
+    submit = SubmitField(
+        label="Sign out"
     )

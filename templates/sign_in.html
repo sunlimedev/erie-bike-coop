@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <title>Sign In</title>
+</head>
+<!-- use the full screen height, center children on y-axis and x-axis, and set background color to light gray -->
+<body class="min-h-dvh flex flex-col justify-center items-center bg-orange-300">
+    <!-- create a large, white, rounded container with some padding around and space between children-->
+    <form method="POST" class="w-4xl bg-white rounded-xl p-3 space-y-3">
+        <!-- csrf token -->
+        {{ form.hidden_tag() }}
+        <!-- add a large bolded title -->
+        <div class="text-2xl font-bold">
+            Welcome to the Erie Bike Co-op!
+        </div>
+        <!-- name -->
+        <div id="name">
+            <div class="text-xl pb-3">
+                {{ form.name.label }}
+            </div>
+            <div class="text-lg">
+                {{ form.name(class_="w-full border border-gray-300 rounded-lg p-3", placeholder="name") }}
+            </div>
+        </div>
+        <!-- visitor/volunteer radio -->
+        <div id="type">
+            <div class="text-xl pb-3">
+                {{ form.type.label }}
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                {% for subfield in form.type %}
+                <div class="text-lg">
+                    {{ subfield(class_="peer sr-only") }}
+                    {{ subfield.label(class_="block cursor-pointer rounded-lg border border-gray-300 p-3 text-center hover:bg-orange-50 peer-checked:border-orange-600 peer-checked:bg-orange-50 peer-checked:text-orange-700") }}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        <!-- visitor reason -->
+        <div id="visitor_reason" class="hidden">
+            <div class="text-xl pb-3">
+            {{ form.visitor_reason.label }}
+            </div>
+            <div class="grid grid-cols-3 gap-3">
+                {% for subfield in form.visitor_reason %}
+                <div class="text-lg">
+                    {{ subfield(class_="peer sr-only") }}
+                    {{ subfield.label(class_="block cursor-pointer rounded-lg border border-gray-300 p-3 text-center hover:bg-orange-50 peer-checked:border-orange-600 peer-checked:bg-orange-50 peer-checked:text-orange-700") }}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        <!-- volunteer reason -->
+        <div id="volunteer_reason" class="hidden">
+            <div class="text-xl pb-3">
+                {{ form.volunteer_reason.label }}
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                {% for subfield in form.volunteer_reason %}
+                <div class="flex-1 text-lg">
+                    {{ subfield(class_="peer sr-only") }}
+                    {{ subfield.label(class_="block cursor-pointer rounded-lg border border-gray-300 p-3 text-center hover:bg-orange-50 peer-checked:border-orange-600 peer-checked:bg-orange-50 peer-checked:text-orange-600") }}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        <!-- email -->
+        <div id="email" class="hidden">
+            <div class="text-xl pb-3">
+                {{ form.email.label }}
+            </div>
+            <div class="w-full text-lg">
+                {{ form.email(class_="w-full border border-gray-300 rounded-lg p-3", placeholder="email address (optional)") }}
+            </div>
+        </div>
+        <!-- phone -->
+        <div id="phone" class="hidden">
+            <div class="text-xl pb-3">
+                {{ form.phone.label }}
+            </div>
+            <div class="w-full text-lg">
+                {{ form.phone(class_="w-full border border-gray-300 rounded-lg p-3", placeholder="phone number (optional)") }}
+            </div>
+        </div>
+        <!-- submit -->
+        <div id="submit" class="hidden">
+            {{ form.submit(class_="w-full rounded-lg p-3 bg-orange-600 text-white text-lg font-bold") }}
+        </div>
+    </form>
+    <script>
+        const visitor = document.getElementById("type-0");
+        const volunteer = document.getElementById("type-1");
+
+        const visitorReason = document.getElementById("visitor_reason");
+        const volunteerReason = document.getElementById("volunteer_reason");
+        const email = document.getElementById("email");
+        const phone = document.getElementById("phone");
+        const submit = document.getElementById("submit");
+
+        function clearRadioGroup(container)
+        {
+            const checkedRadios = container.querySelectorAll('input[type="radio"]:checked');
+            checkedRadios.forEach(radio =>
+            {
+                radio.checked = false;
+            });
+        }
+
+        function updateTypeFields() {
+            if (visitor.checked)
+            {
+                visitorReason.classList.remove("hidden");
+                volunteerReason.classList.add("hidden");
+
+                clearRadioGroup(volunteerReason);
+
+                email.classList.remove("hidden");
+                phone.classList.remove("hidden");
+                submit.classList.remove("hidden");
+            }
+            else if (volunteer.checked)
+            {
+                visitorReason.classList.add("hidden");
+                volunteerReason.classList.remove("hidden");
+
+                clearRadioGroup(visitorReason);
+
+                email.classList.remove("hidden");
+                phone.classList.remove("hidden");
+                submit.classList.remove("hidden");
+            }
+        }
+
+        visitor.addEventListener("change", updateTypeFields);
+        volunteer.addEventListener("change", updateTypeFields);
+
+        updateTypeFields();
+    </script>
+</body>
+</html>

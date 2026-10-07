@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <title>Sign Out</title>
+</head>
+<!-- use the full screen height, center children on y-axis and x-axis, and set background color to light gray -->
+<body class="min-h-dvh flex flex-col justify-center items-center bg-orange-300">
+    <!-- create a large, white, rounded container with some padding around and space between children-->
+    <form method="POST" class="w-xl bg-white rounded-xl p-3 space-y-3">
+        <!-- csrf token -->
+        {{ form.hidden_tag() }}
+        <!-- add a large bolded title -->
+        <div class="text-2xl font-bold">
+        Select the volunteer(s) to sign out.
+        </div>
+        <!-- volunteer boxes -->
+        <div class="space-y-3 text-lg">
+            {% for name in form.names %}
+                {% set volunteer = volunteers[loop.index0] %}
+                <div>
+                    {{ name(class_="peer sr-only") }}
+                    <label for="{{ name.id }}" class="flex flex-row justify-between rounded-lg border border-gray-300 p-3 cursor-pointer hover:bg-orange-50 peer-checked:border-orange-600 peer-checked:bg-orange-50 peer-checked:text-orange-700">
+                        <span class="w-1/2">
+                            {{ volunteer["name"] }}
+                        </span>
+                        <span class="w-1/4">
+                            Volunteer
+                        </span>
+                        <span class="w-1/4 text-right">
+                            {{ volunteer["hours"] }} hours
+                        </span>
+                    </label>
+                </div>
+            {% endfor %}
+        </div>
+    <!-- submit -->
+    <div id="submit">
+        {{ form.submit(class_="w-full rounded-lg p-3 bg-orange-600 text-white text-lg font-bold") }}
+        </div>
+    </form>
+</body>
+</html>

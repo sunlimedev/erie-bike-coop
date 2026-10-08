@@ -13,6 +13,7 @@ import csv
 
 from pathlib import Path
 from datetime import datetime
+from dotenv import load_dotenv
 from flask import Flask, render_template, redirect, url_for, flash
 from flask_login import LoginManager, UserMixin
 
@@ -21,6 +22,8 @@ from forms import SignInForm, SignOutForm
 
 # ------------------ constants -----------------------------------------------------------------------------------------
 
+
+load_dotenv()
 
 # host and port for debug server
 HOST = "0.0.0.0"

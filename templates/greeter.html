@@ -1,19 +1,16 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <title>Greeter</title>
-</head>
-<!-- full screen height, center children on y-axis and x-axis, set background color to soft orange -->
-<body class="min-h-dvh flex flex-col justify-center items-center bg-orange-300">
+{% extends "_base.html" %}
+
+{% block title %}Greeter{% endblock %}
+
+{% block content %}
     <!-- create a large, white, rounded container with some padding around and space between children-->
     <div class="w-xl bg-white rounded-xl p-3 space-y-3">
         <!-- add a large bolded title -->
         <div class="text-2xl font-bold">
             Welcome to the Erie Bike Co-op!
         </div>
+        <!-- alert -->
+        {% include "_alert.html" %}
         <!-- link to sign in -->
         <a href="{{ url_for('sign_in') }}" class="block w-full text-white text-lg font-bold rounded-lg p-3 bg-orange-600 text-center">
             Sign in
@@ -23,5 +20,6 @@
             Sign out
         </a>
     </div>
-</body>
-</html>
+    <!-- drop alert script -->
+    {% include "_drop_alert.html" %}
+{% endblock %}

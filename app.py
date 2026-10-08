@@ -1,9 +1,14 @@
-# using orange 50, 300, 600
+# Erie Bike Cooperative Sign In Form System
+
+# This program records visitor and volunteer information.
+# Volunteers have their time and volunteer reason collected to assist with grants and such.
+# A backup program aggregates the daily .csv files into monthly tables and emails them to a specific address.
 
 
 # ------------------ imports -------------------------------------------------------------------------------------------
 
 
+import os
 import csv
 
 from pathlib import Path
@@ -24,13 +29,16 @@ PORT = 5000
 # directory for csv files
 FORM_DATA_FOLDER = "logs"
 
+# flask cookie/session key
+SECRET_KEY = os.getenv("FLASK_SECRET_KEY")
+
 
 # ------------------ flask config --------------------------------------------------------------------------------------
 
 
 app = Flask(__name__)
 
-app.config['SECRET_KEY'] = 'bicycle'
+app.config['SECRET_KEY'] = SECRET_KEY
 
 # not doing anything at the moment
 login_manager = LoginManager(app)
@@ -102,12 +110,12 @@ def sign_in():
                 reason,
                 form.email.data,
                 form.phone.data,
-                0
+                "0"
             ]
 
             writer.writerow(row)
 
-        flash(f"Thanks for coming, {form.name.data}!", "notify")
+        flash(f"Thanks for coming, {form.name.data}!", "success")
         return redirect(url_for("greeter"))
 
     # GET
@@ -128,41 +136,45 @@ def sign_out():
         flash("There is no one to sign out.", "notify")
         return redirect(url_for("greeter"))
 
-    with open(file_path, mode="r", encoding="utf-8") as file:
-        reader = csv.reader(file)
+    try:
+        with open(file_path, mode="r", newline="", encoding="utf-8") as file:
+            reader = csv.reader(file)
 
-        # skip header row
-        headers = next(reader)
+            # skip header row
+            headers = next(reader)
 
-        dates = []
-        names = []
-        types = []
-        reasons = []
-        emails = []
-        phones = []
-        hours = []
+            dates = []
+            names = []
+            types = []
+            reasons = []
+            emails = []
+            phones = []
+            hours = []
 
-        volunteers = []
+            volunteers = []
 
-        for row in reader:
-            if row[2] == "volunteer" and row[6] == "0":
-                # get hours since volunteer started
-                start_time = datetime.strptime(row[0], timestamp_format)
-                current_time = datetime.strptime(timestamp, timestamp_format)
-                time = round((current_time - start_time).total_seconds() / 3600, ndigits=2)
+            for row in reader:
+                if row[2] == "volunteer" and row[6] == "0":
+                    # get hours since volunteer started
+                    start_time = datetime.strptime(row[0], timestamp_format)
+                    current_time = datetime.strptime(timestamp, timestamp_format)
+                    time = round((current_time - start_time).total_seconds() / 3600, ndigits=2)
 
-                volunteers.append({
-                    "name": row[1],
-                    "hours": time
-                })
+                    volunteers.append({
+                        "name": row[1],
+                        "hours": time
+                    })
 
-            dates.append(row[0])
-            names.append(row[1])
-            types.append(row[2])
-            reasons.append(row[3])
-            emails.append(row[4])
-            phones.append(row[5])
-            hours.append(row[6])
+                dates.append(row[0])
+                names.append(row[1])
+                types.append(row[2])
+                reasons.append(row[3])
+                emails.append(row[4])
+                phones.append(row[5])
+                hours.append(row[6])
+    except OSError:
+        flash("No one has signed in today.", "notify")
+        return redirect(url_for("greeter"))
 
     if len(volunteers) == 0:
         flash("There is no one to sign out.", "notify")
@@ -185,15 +197,15 @@ def sign_out():
                 if names[i] in selected_names:
                     start_time = datetime.strptime(dates[i], timestamp_format)
                     current_time = datetime.strptime(timestamp, timestamp_format)
-                    hours[i] = str(round((current_time - start_time).total_seconds() / 3600, ndigits=2) + 0.01)
+                    hours[i] = str(round(((current_time - start_time).total_seconds() / 3600) + 0.01, ndigits=2))
 
                 # rebuild the file
                 writer.writerow([dates[i], names[i], types[i], reasons[i], emails[i], phones[i], hours[i]])
 
         # show the volunteers signed out on greeter page
         signed_out_names = ", ".join(selected_names)
-        verb = "is" if len(signed_out_names) == 1 else "are"
-        flash(f"{signed_out_names} {verb} now signed out.", "notify")
+        verb = "has" if len(selected_names) == 1 else "have"
+        flash(f"{signed_out_names} {verb} been signed out.", "success")
         return redirect(url_for("greeter"))
 
     # GET

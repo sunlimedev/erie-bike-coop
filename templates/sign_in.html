@@ -1,13 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <title>Sign In</title>
-</head>
-<!-- use the full screen height, center children on y-axis and x-axis, and set background color to light gray -->
-<body class="min-h-dvh flex flex-col justify-center items-center bg-orange-300">
+{% extends "_base.html" %}
+
+{% block title %}Sign in{% endblock %}
+
+{% block content %}
     <!-- create a large, white, rounded container with some padding around and space between children-->
     <form method="POST" class="w-4xl bg-white rounded-xl p-3 space-y-3">
         <!-- csrf token -->
@@ -22,7 +17,7 @@
                 {{ form.name.label }}
             </div>
             <div class="text-lg">
-                {{ form.name(class_="w-full border border-gray-300 rounded-lg p-3", placeholder="name") }}
+                {{ form.name(class_="w-full border border-gray-300 rounded-lg p-3", placeholder="full name") }}
             </div>
         </div>
         <!-- visitor/volunteer radio -->
@@ -73,7 +68,7 @@
                 {{ form.email.label }}
             </div>
             <div class="w-full text-lg">
-                {{ form.email(class_="w-full border border-gray-300 rounded-lg p-3", placeholder="email address (optional)") }}
+                {{ form.email(class_="w-full border border-gray-300 rounded-lg p-3", placeholder="(optional)") }}
             </div>
         </div>
         <!-- phone -->
@@ -82,7 +77,7 @@
                 {{ form.phone.label }}
             </div>
             <div class="w-full text-lg">
-                {{ form.phone(class_="w-full border border-gray-300 rounded-lg p-3", placeholder="phone number (optional)") }}
+                {{ form.phone(class_="w-full border border-gray-300 rounded-lg p-3", placeholder="(optional)") }}
             </div>
         </div>
         <!-- submit -->
@@ -139,5 +134,4 @@
 
         updateTypeFields();
     </script>
-</body>
-</html>
+{% endblock %}

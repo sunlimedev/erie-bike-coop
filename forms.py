@@ -6,7 +6,7 @@ from wtforms.widgets.core import CheckboxInput, ListWidget
 
 class SignInForm(FlaskForm):
     name = StringField(
-        label="What is your name?",
+        label="What is your full name?",
         validators=[
             InputRequired(message="Please enter your name.")
         ]

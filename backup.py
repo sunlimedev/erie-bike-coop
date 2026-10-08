@@ -1,3 +1,11 @@
+# Erie Bike Cooperative Email Backup Script
+
+# This program consolidates daily forms into a monthly one and emails it for safekeeping.
+
+
+# ------------------ imports -------------------------------------------------------------------------------------------
+
+
 import os
 import csv
 import smtplib

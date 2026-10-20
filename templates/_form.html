@@ -17,15 +17,17 @@
 </head>
 <body class="bg-orange-300">
     <div class="min-h-dvh flex items-center justify-center p-10">
-        <form method="POST" class="w-4xl flex flex-col bg-gray-50 rounded-xl p-5 gap-5">
+        <div class="p-2 bg-white rounded-2xl shadow-xl">
             <!-- primary content block-->
-            {% block content %}
+            <form method="POST" class="w-4xl flex flex-col bg-gray-50 rounded-xl p-5 gap-5 border-2 border-gray-100">
+                {% block content %}
 
-            {% endblock %}
-        </form>
+                {% endblock %}
+            </form>
+        </div>
     </div>
     <!-- footer block -->
-    <footer class="fixed bottom-0 w-full flex flex-col items-center items-top h-20 font-semibold text-lg text-gray-700">
+    <footer class="fixed bottom-0 w-full flex justify-center items-top h-12 font-semibold text-lg text-gray-700 font-mono">
         {% block footer %}
 
         {% endblock %}

@@ -4,28 +4,24 @@
 
 {% block content %}
     <!-- add a large bolded title -->
-    <div class="flex text-gray-700 justify-center text-5xl font-semibold">
+    <div class="text-gray-700 text-4xl font-semibold">
         Welcome to the Erie Bike Co-op!
     </div>
     <!-- alert -->
     {% include "_alert.html" %}
     <!-- visitor -->
-    <a href="{{ url_for('visitor') }}" class="block w-full text-gray-50 text-5xl font-semibold rounded-lg p-10 bg-orange-600 text-center hover:bg-orange-700">
-        Visitor Sign In
+    <a href="{{ url_for('visitor') }}" class="block w-full text-gray-50 text-4xl font-semibold rounded-lg p-8 bg-orange-600 text-center hover:bg-orange-700">
+        Visitor
     </a>
     <!-- volunteer -->
     <a href="{{ url_for('volunteer') }}" class="block w-full text-gray-50 text-4xl font-semibold rounded-lg p-8 bg-orange-600 text-center hover:bg-orange-700">
-        Volunteer Sign In
+        Volunteer
     </a>
-    <!-- admin -->
-    <a href="{{ url_for('admin') }}" class="block w-full text-gray-50 text-3xl font-semibold rounded-lg p-6 bg-orange-600 text-center hover:bg-orange-700">
-        Admin Panel
-    </a>
+
     <!-- drop alert script -->
     {% include "_drop_alert.html" %}
 {% endblock %}
 
 {% block footer %}
-    <div>Visitors today - 18</div>
-    <div>Volunteers today - 7</div>
+    Oct 20, 2026 - 18 visitors - 7 volunteers
 {% endblock %}

@@ -1,25 +1,31 @@
 {% extends "_base.html" %}
 
-{% block title %}Greeter{% endblock %}
+{% block title %}Welcome!{% endblock %}
 
 {% block content %}
-    <!-- create a large, white, rounded container with some padding around and space between children-->
-    <div class="w-xl bg-white rounded-xl p-3 space-y-3">
-        <!-- add a large bolded title -->
-        <div class="text-2xl font-bold">
-            Welcome to the Erie Bike Co-op!
-        </div>
-        <!-- alert -->
-        {% include "_alert.html" %}
-        <!-- link to sign in -->
-        <a href="{{ url_for('sign_in') }}" class="block w-full text-white text-lg font-bold rounded-lg p-3 bg-orange-600 text-center">
-            Sign in
-        </a>
-        <!-- link to sign out -->
-        <a href="{{ url_for('sign_out') }}" class="block w-full text-white text-lg font-bold rounded-lg p-3 bg-orange-600 text-center">
-            Sign out
-        </a>
+    <!-- add a large bolded title -->
+    <div class="flex text-gray-700 justify-center text-5xl font-semibold">
+        Welcome to the Erie Bike Co-op!
     </div>
+    <!-- alert -->
+    {% include "_alert.html" %}
+    <!-- visitor -->
+    <a href="{{ url_for('visitor') }}" class="block w-full text-gray-50 text-5xl font-semibold rounded-lg p-10 bg-orange-600 text-center hover:bg-orange-700">
+        Visitor Sign In
+    </a>
+    <!-- volunteer -->
+    <a href="{{ url_for('volunteer') }}" class="block w-full text-gray-50 text-4xl font-semibold rounded-lg p-8 bg-orange-600 text-center hover:bg-orange-700">
+        Volunteer Sign In
+    </a>
+    <!-- admin -->
+    <a href="{{ url_for('admin') }}" class="block w-full text-gray-50 text-3xl font-semibold rounded-lg p-6 bg-orange-600 text-center hover:bg-orange-700">
+        Admin Panel
+    </a>
     <!-- drop alert script -->
     {% include "_drop_alert.html" %}
+{% endblock %}
+
+{% block footer %}
+    <div>Visitors today - 18</div>
+    <div>Volunteers today - 7</div>
 {% endblock %}

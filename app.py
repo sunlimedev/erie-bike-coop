@@ -32,16 +32,14 @@ PORT = 5000
 # directory for csv files
 FORM_DATA_FOLDER = "logs"
 
-# flask cookie/session key
-SECRET_KEY = os.getenv("FLASK_SECRET_KEY")
-
 
 # ------------------ flask config --------------------------------------------------------------------------------------
 
 
 app = Flask(__name__)
 
-app.config['SECRET_KEY'] = SECRET_KEY
+# configure secret key for forms
+app.config['SECRET_KEY'] = os.getenv("FLASK_SECRET_KEY", "abcdefghijklmnopqrstuvwxyz")
 
 # not doing anything at the moment
 login_manager = LoginManager(app)
@@ -61,68 +59,27 @@ class User(UserMixin):
 # ------------------ routes --------------------------------------------------------------------------------------------
 
 
-@app.route("/", methods=["GET", "POST"])
-@app.route("/greeter", methods=["GET", "POST"])
+@app.get("/")
 def greeter():
     return render_template("greeter.html")
 
 
-@app.route("/sign_in", methods=["GET", "POST"])
-def sign_in():
-    # form
-    form = SignInForm()
-
-    # POST
-    if form.validate_on_submit():
-        now = datetime.now()
-        today = now.strftime("%Y-%m-%d")
-        timestamp = now.strftime("%Y-%m-%d %H:%M:%S")
-
-        # dynamically create csv file for logging
-        file_path = Path(f"{FORM_DATA_FOLDER}/{today}.csv")
-        file_path.parent.mkdir(parents=True, exist_ok=True)
-
-        # column names for csv
-        columns = ["Date", "Name", "Type", "Reason", "Email", "Phone", "Hours"]
-
-        # creates a new file on a new month or a fresh install
-        if not file_path.is_file():
-            with open(file_path, mode="w", newline="", encoding="utf-8") as file:
-                writer = csv.writer(file)
-                writer.writerow(columns)
-
-        # grab the correct reason data if present
-        if form.type.data == "visitor":
-            if not form.visitor_reason.data:
-                reason = ""
-            else:
-                reason = form.visitor_reason.data
-        else:
-            if not form.volunteer_reason.data:
-                reason = ""
-            else:
-                reason = form.volunteer_reason.data
-
-        with open(file_path, mode="a", newline="", encoding="utf-8") as file:
-            writer = csv.writer(file)
-
-            row = [
-                timestamp,
-                form.name.data,
-                form.type.data,
-                reason,
-                form.email.data,
-                form.phone.data,
-                "0"
-            ]
-
-            writer.writerow(row)
-
-        flash(f"Thanks for coming, {form.name.data}!", "success")
-        return redirect(url_for("greeter"))
-
+@app.route("/visitor", methods=["GET", "POST"])
+def visitor():
     # GET
-    return render_template("sign_in.html", form=form)
+    return render_template("visitor.html")
+
+
+@app.route("/volunteer", methods=["GET", "POST"])
+def volunteer():
+    # GET
+    return render_template("volunteer.html")
+
+
+@app.route("/admin", methods=["GET", "POST"])
+def admin():
+    # GET
+    return render_template("admin.html")
 
 
 @app.route("/sign_out", methods=["GET", "POST"])

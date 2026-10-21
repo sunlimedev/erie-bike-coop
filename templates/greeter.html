@@ -1,39 +1,31 @@
 {% extends "_base.html" %}
 
-
 {% block title %}Welcome!{% endblock %}
-
 
 {% block header %}
     <div class="flex justify-end">
-        <a href="{{ url_for('admin') }}" class="flex p-4 border-2 border-gray-700 text-gray-700 rounded-lg text-xl hover:bg-orange-600 hover:text-gray-50 hover:border-orange-600">
-            Admin
+        <a href="{{ url_for('admin') }}" class="flex p-4 border-2 border-white text-white rounded-lg text-xl hover:bg-orange-600 hover:text-gray-50 hover:border-orange-600 font-semibold">
+            Admin View
         </a>
     </div>
 {% endblock %}
 
-
 {% block content %}
-    <!-- add a large bolded title -->
+    <!-- title -->
     <div class="text-gray-700 text-4xl font-semibold">
         Welcome to the Erie Bike Co-op!
     </div>
-    <!-- alert -->
-    {% include "_alert.html" %}
     <!-- visitor -->
-    <a href="{{ url_for('visitor') }}" class="block w-full text-gray-50 text-4xl font-semibold rounded-lg p-8 bg-orange-600 text-center hover:bg-orange-700">
-        Visitor
-    </a>
-    <!-- volunteer -->
-    <a href="{{ url_for('volunteer') }}" class="block w-full text-gray-50 text-4xl font-semibold rounded-lg p-8 bg-orange-600 text-center hover:bg-orange-700">
-        Volunteer
-    </a>
-
-    <!-- drop alert script -->
-    {% include "_drop_alert.html" %}
+    <div class="columns-2 gap-5">
+        <a href="{{ url_for('visitor_form') }}" class="block text-gray-50 text-4xl font-semibold rounded-lg p-8 bg-orange-600 text-center hover:bg-orange-700">
+            Visitor
+        </a>
+        <!-- volunteer -->
+        <a href="{{ url_for('volunteer_form') }}" class="block text-gray-50 text-4xl font-semibold rounded-lg p-8 bg-orange-600 text-center hover:bg-orange-700">
+            Volunteer
+        </a>
+    </div>
 {% endblock %}
 
-
 {% block footer %}
-
 {% endblock %}

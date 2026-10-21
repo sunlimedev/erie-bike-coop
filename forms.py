@@ -1,68 +1,72 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, EmailField, RadioField, SubmitField, TelField, SelectMultipleField
+from wtforms import StringField, EmailField, RadioField, SubmitField, IntegerField
 from wtforms.validators import InputRequired, Optional
-from wtforms.widgets.core import CheckboxInput, ListWidget
 
 
-class SignInForm(FlaskForm):
+class VisitorForm(FlaskForm):
     name = StringField(
-        label="What is your full name?",
-        validators=[
-            InputRequired(message="Please enter your name.")
-        ]
+        label="What is your name?",
+        validators=[InputRequired(message="Please enter your name.")],
+        render_kw={"autofocus": True}
     )
-    type = RadioField(
+    reason = RadioField(
         label="What brings you in?",
+        validators=[InputRequired(message="Please choose a reason for visiting.")],
         choices=[
-            ("visitor", "I am visiting"),
-            ("volunteer", "I am volunteering")
-        ],
-        validators=[
-            InputRequired(message="Please select one of these options:")
-        ]
-    )
-    visitor_reason = RadioField(
-        label="What is your reason for visiting?",
-        choices=[
-            ("repair", "Repairing a bike myself"),
+            ("repair", "Repairing a bike"),
             ("earn bike", "Earn-a-Bike session"),
             ("info", "Getting info / Just curious"),
-            ("donate money", "Donating money"),
+            ("purchase bike", "Purchasing bike or parts"),
             ("donate bike", "Donating bike or parts"),
-            ("purchase bike", "Purchasing bike or parts")
-        ],
-        validators=[Optional()]
-    )
-    volunteer_reason = RadioField(
-        label="What is your reason for volunteering?",
-        choices=[
-            ("school", "Service hours for school"),
-            ("correctional", "Service hours for correctional program"),
-            ("court", "Service hours for court"),
-            ("help", "Just wanted to help")
-        ],
-        validators=[Optional()]
+            ("donate money", "Donating money")
+        ]
     )
     email = EmailField(
         label="What is your email address?",
-        validators=[Optional()]
+        validators=[Optional()],
+        render_kw={"placeholder": "optional"}
     )
-    phone = TelField(
-        label="What is your phone number?",
-        validators=[Optional()]
+    note = StringField(
+        label="What is your note?",
+        validators=[Optional()],
+        render_kw={"placeholder": "optional"}
     )
     submit = SubmitField(
-        label="Sign in"
+        label="Done"
     )
 
 
-class SignOutForm(FlaskForm):
-    names = SelectMultipleField(
-        label="Current Volunteers",
-        choices=[],
-        option_widget=CheckboxInput(),
-        widget=ListWidget(prefix_label=False) # type: ignore
+class VolunteerForm(FlaskForm):
+    name = StringField(
+        label="What is your name?",
+        validators=[Optional()],
+        render_kw={"autofocus": True}
+    )
+    number = IntegerField(
+        label="Volunteer #",
+        validators=[Optional()],
+        render_kw={"placeholder": "optional"}
+    )
+    reason = RadioField(
+        label="What brings you in?",
+        validators=[InputRequired(message="Please choose a reason for visiting.")],
+        choices=[
+            ("general service", "General service hours"),
+            ("school", "Service hours for school"),
+            ("correctional", "I'm from the Center"),
+            ("help", "Here to help")
+        ]
+    )
+    email = EmailField(
+        label="What is your email address?",
+        validators=[Optional()],
+        render_kw={"placeholder": "optional"}
+    )
+    note = StringField(
+        label="Note",
+        validators=[Optional()],
+        render_kw={"placeholder": "optional"}
     )
     submit = SubmitField(
-        label="Sign out"
+        label="Done"
     )

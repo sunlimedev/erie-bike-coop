@@ -17,7 +17,7 @@ from dotenv import load_dotenv
 from flask import Flask, render_template, redirect, url_for, flash
 from flask_login import LoginManager, UserMixin
 
-from forms import SignInForm, SignOutForm
+from forms import VisitorForm, VolunteerForm
 
 
 # ------------------ constants -----------------------------------------------------------------------------------------
@@ -64,16 +64,22 @@ def greeter():
     return render_template("greeter.html")
 
 
-@app.route("/visitor", methods=["GET", "POST"])
-def visitor():
+@app.route("/visitor_form", methods=["GET", "POST"])
+def visitor_form():
+    # form
+    form = VisitorForm()
+
     # GET
-    return render_template("visitor.html")
+    return render_template("visitor_form.html", form=form)
 
 
-@app.route("/volunteer", methods=["GET", "POST"])
-def volunteer():
+@app.route("/volunteer_form", methods=["GET", "POST"])
+def volunteer_form():
+    # form
+    form = VolunteerForm()
+
     # GET
-    return render_template("volunteer.html")
+    return render_template("volunteer_form.html", form=form)
 
 
 @app.route("/admin", methods=["GET", "POST"])
@@ -84,92 +90,8 @@ def admin():
 
 @app.route("/sign_out", methods=["GET", "POST"])
 def sign_out():
-    # checks/data
-    now = datetime.now()
-    today = now.strftime("%Y-%m-%d")
-    timestamp = now.strftime("%Y-%m-%d %H:%M:%S")
-    timestamp_format = "%Y-%m-%d %H:%M:%S"
-
-    file_path = Path(f"{FORM_DATA_FOLDER}/{today}.csv")
-
-    if not file_path.is_file():
-        flash("There is no one to sign out.", "notify")
-        return redirect(url_for("greeter"))
-
-    try:
-        with open(file_path, mode="r", newline="", encoding="utf-8") as file:
-            reader = csv.reader(file)
-
-            # skip header row
-            headers = next(reader)
-
-            dates = []
-            names = []
-            types = []
-            reasons = []
-            emails = []
-            phones = []
-            hours = []
-
-            volunteers = []
-
-            for row in reader:
-                if row[2] == "volunteer" and row[6] == "0":
-                    # get hours since volunteer started
-                    start_time = datetime.strptime(row[0], timestamp_format)
-                    current_time = datetime.strptime(timestamp, timestamp_format)
-                    time = round((current_time - start_time).total_seconds() / 3600, ndigits=2)
-
-                    volunteers.append({
-                        "name": row[1],
-                        "hours": time
-                    })
-
-                dates.append(row[0])
-                names.append(row[1])
-                types.append(row[2])
-                reasons.append(row[3])
-                emails.append(row[4])
-                phones.append(row[5])
-                hours.append(row[6])
-    except OSError:
-        flash("No one has signed in today.", "notify")
-        return redirect(url_for("greeter"))
-
-    if len(volunteers) == 0:
-        flash("There is no one to sign out.", "notify")
-        return redirect(url_for("greeter"))
-
-    # form
-    form = SignOutForm()
-    form.names.choices = [(volunteer["name"], volunteer["name"]) for volunteer in volunteers]
-
-    # POST
-    if form.validate_on_submit():
-        selected_names = form.names.data
-
-        with open(file_path, mode="w", newline="", encoding="utf-8") as file:
-            writer = csv.writer(file)
-            writer.writerow(headers)
-
-            # adjust hours of volunteer since they are being signed out
-            for i in range(len(names)):
-                if names[i] in selected_names:
-                    start_time = datetime.strptime(dates[i], timestamp_format)
-                    current_time = datetime.strptime(timestamp, timestamp_format)
-                    hours[i] = str(round(((current_time - start_time).total_seconds() / 3600) + 0.01, ndigits=2))
-
-                # rebuild the file
-                writer.writerow([dates[i], names[i], types[i], reasons[i], emails[i], phones[i], hours[i]])
-
-        # show the volunteers signed out on greeter page
-        signed_out_names = ", ".join(selected_names)
-        verb = "has" if len(selected_names) == 1 else "have"
-        flash(f"{signed_out_names} {verb} been signed out.", "success")
-        return redirect(url_for("greeter"))
-
     # GET
-    return render_template("sign_out.html", volunteers=volunteers, form=form)
+    return render_template("sign_out.html")
 
 
 # ------------------ helper functions ----------------------------------------------------------------------------------

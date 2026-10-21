@@ -16,7 +16,7 @@
     <title>{% block title %}Erie Bike Co-op{% endblock %}</title>
 </head>
 <body class="bg-orange-300">
-    <!-- footer block -->
+    <!-- header block -->
     <header class="fixed top-0 w-full p-3">
         {% block header %}
 
@@ -26,6 +26,8 @@
         <div class="p-2 bg-white rounded-2xl shadow-xl">
             <!-- primary content block-->
             <form method="POST" class="w-4xl flex flex-col bg-gray-50 rounded-xl p-5 gap-5 border-2 border-gray-100">
+                <!-- csrf token -->
+                {{ form.hidden_tag() }}
                 {% block content %}
 
                 {% endblock %}
@@ -38,5 +40,8 @@
 
         {% endblock %}
     </footer>
+    {% block script %}
+
+    {% endblock %}
 </body>
 </html>

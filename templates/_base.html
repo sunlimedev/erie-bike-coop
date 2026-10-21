@@ -16,6 +16,12 @@
     <title>{% block title %}Erie Bike Co-op{% endblock %}</title>
 </head>
 <body class="bg-orange-300">
+    <!-- footer block -->
+    <header class="fixed top-0 w-full p-3">
+        {% block header %}
+
+        {% endblock %}
+    </header>
     <div class="min-h-dvh flex items-center justify-center p-10">
         <div class="p-2 bg-white rounded-2xl shadow-xl">
             <!-- primary content block-->
@@ -27,7 +33,7 @@
         </div>
     </div>
     <!-- footer block -->
-    <footer class="fixed bottom-0 w-full flex justify-center items-top h-12 font-semibold text-lg text-gray-700 font-mono">
+    <footer class="fixed bottom-0 w-full p-3">
         {% block footer %}
 
         {% endblock %}

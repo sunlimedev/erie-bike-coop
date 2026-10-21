@@ -1,7 +1,95 @@
 {% extends "_form.html" %}
 
-{% block title %}Visitor{% endblock %}
+{% block title %}Visitor Form{% endblock %}
+
+
+{% block header %}
+
+{% endblock %}
+
 
 {% block content %}
+    <!-- alert -->
+    {% include "_alert.html" %}
+    <!-- name -->
+    <div class="flex flex-col text-gray-700">
+        <label for="name" class="font-semibold text-2xl pb-1">
+            What's your name?
+        </label>
+        <input type="text" id="name" class="border-2 border-gray-300 p-3 text-xl rounded-lg">
+    </div>
+    <!-- reason -->
+    <div class="flex flex-col">
+        <div class="font-semibold text-gray-700 text-2xl pb-1">
+            What brings you in?
+        </div>
+        <ul class="grid grid-cols-2 gap-3">
+            <li>
+                <input type="radio" id="option1" name="option" value="option1" class="hidden peer" required>
+                <label for="option1" class="block p-3 text-xl text-gray-700 rounded-lg border-2 border-gray-300 rounded cursor-pointer peer-checked:bg-orange-200 hover:bg-gray-100">
+                    Option 1
+                </label>
+            </li>
+            <li>
+                <input type="radio" id="option2" name="option" value="option2" class="hidden peer">
+                <label for="option2" class="block p-3 text-xl text-gray-700 rounded-lg border-2 border-gray-300 rounded cursor-pointer peer-checked:bg-orange-200 hover:bg-gray-100">
+                    Option 2
+                </label>
+            </li>
+            <li>
+                <input type="radio" id="option3" name="option" value="option3" class="hidden peer" required>
+                <label for="option3" class="block p-3 text-xl text-gray-700 rounded-lg border-2 border-gray-300 rounded cursor-pointer peer-checked:bg-orange-200 hover:bg-gray-100">
+                    Option 3
+                </label>
+            </li>
+            <li>
+                <input type="radio" id="option4" name="option" value="option4" class="hidden peer">
+                <label for="option4" class="block p-3 text-xl text-gray-700 rounded-lg border-2 border-gray-300 rounded cursor-pointer peer-checked:bg-orange-200 hover:bg-gray-100">
+                    Option 4
+                </label>
+            </li>
+            <li>
+                <input type="radio" id="option5" name="option" value="option5" class="hidden peer" required>
+                <label for="option5" class="block p-3 text-xl text-gray-700 rounded-lg border-2 border-gray-300 rounded cursor-pointer peer-checked:bg-orange-200 hover:bg-gray-100">
+                    Option 5
+                </label>
+            </li>
+            <li>
+                <input type="radio" id="option6" name="option" value="option6" class="hidden peer">
+                <label for="option6" class="block p-3 text-xl text-gray-700 rounded-lg border-2 border-gray-300 rounded cursor-pointer peer-checked:bg-orange-200 hover:bg-gray-100">
+                    Option 6
+                </label>
+            </li>
+        </ul>
+    </div>
+    <!-- email -->
+    <div class="flex flex-col text-gray-700">
+        <label for="email" class="font-semibold text-2xl pb-1">
+            What's your email?
+        </label>
+        <input type="email" id="email" class="border-2 border-gray-300 p-3 text-xl rounded-lg" placeholder="optional">
+    </div>
+    <!-- phone number -->
+    <div class="flex flex-col text-gray-700">
+        <label for="note" class="font-semibold text-2xl pb-1">
+            Note
+        </label>
+        <input type="text" id="note" class="border-2 border-gray-300 p-3 text-xl rounded-lg" placeholder="optional">
+    </div>
+    <!-- cancel and submit -->
+    <div class="grid grid-cols-2 gap-3">
+        <a href="{{ url_for('greeter') }}" class="font-semibold rounded-lg text-orange-600 text-center p-3 border-2 border-orange-600 text-xl hover:bg-gray-200">
+            Cancel
+        </a>
+        <button type="submit" class="font-semibold rounded-lg p-3 bg-orange-600 border-2 border-orange-600 text-xl text-gray-50 hover:bg-orange-700 hover:border-orange-700">
+            Submit
+        </button>
+    </div>
+    <!-- drop alert script -->
+    {% include "_drop_alert.html" %}
+{% endblock %}
+
+
+{% block footer %}
 
 {% endblock %}

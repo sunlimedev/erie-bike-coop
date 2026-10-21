@@ -27,7 +27,7 @@ load_dotenv()
 
 # host and port for debug server
 HOST = "0.0.0.0"
-PORT = 5000
+PORT = 8080
 
 # directory for csv files
 FORM_DATA_FOLDER = "logs"

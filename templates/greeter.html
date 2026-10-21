@@ -1,6 +1,17 @@
 {% extends "_base.html" %}
 
+
 {% block title %}Welcome!{% endblock %}
+
+
+{% block header %}
+    <div class="flex justify-end">
+        <a href="{{ url_for('admin') }}" class="flex p-4 border-2 border-gray-700 text-gray-700 rounded-lg text-xl hover:bg-orange-600 hover:text-gray-50 hover:border-orange-600">
+            Admin
+        </a>
+    </div>
+{% endblock %}
+
 
 {% block content %}
     <!-- add a large bolded title -->
@@ -22,6 +33,7 @@
     {% include "_drop_alert.html" %}
 {% endblock %}
 
+
 {% block footer %}
-    Oct 20, 2026 - 18 visitors - 7 volunteers
+
 {% endblock %}

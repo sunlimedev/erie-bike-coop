@@ -1,5 +1,5 @@
 # Erie Bike Cooperative Sign In Form System
-
+import contextlib
 # This program records visitor and volunteer information.
 # Volunteers have their time and volunteer reason collected to assist with grants and such.
 # A backup program aggregates the daily .csv files into monthly tables and emails them to a specific address.
@@ -10,10 +10,13 @@
 
 import os
 import csv
+import sqlite3
 
 from pathlib import Path
 from datetime import datetime
 from dotenv import load_dotenv
+from contextlib import contextmanager
+from werkzeug.security import generate_password_hash, check_password_hash
 from flask import Flask, render_template, redirect, url_for, flash
 from flask_login import LoginManager, UserMixin
 
@@ -29,8 +32,11 @@ load_dotenv()
 HOST = "0.0.0.0"
 PORT = 8080
 
-# directory for csv files
-FORM_DATA_FOLDER = "logs"
+# sqlite database file
+DATABASE_FILE = Path("app.db")
+
+# admin password
+ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "pass")
 
 
 # ------------------ flask config --------------------------------------------------------------------------------------
@@ -60,6 +66,8 @@ class User(UserMixin):
 
 
 @app.get("/")
+@app.get("/home")
+@app.get("/greeter")
 def greeter():
     return render_template("greeter.html")
 
@@ -69,14 +77,28 @@ def visitor_form():
     # form
     form = VisitorForm()
 
+    # POST
+    if form.validate_on_submit():
+        print(form.data)
+
     # GET
     return render_template("visitor_form.html", form=form)
+
+
+@app.route("/volunteer_form", methods=["GET", "POST"])
+def volunteer():
+    # GET
+    pass
 
 
 @app.route("/volunteer_form", methods=["GET", "POST"])
 def volunteer_form():
     # form
     form = VolunteerForm()
+
+    # POST
+    if form.validate_on_submit():
+        print(form.data)
 
     # GET
     return render_template("volunteer_form.html", form=form)
@@ -101,6 +123,73 @@ def sign_out():
 @login_manager.user_loader
 def load_user():
     return User("a", "a", "a")
+
+
+@contextmanager
+def get_db():
+    if not DATABASE_FILE.is_file():
+        create_db(DATABASE_FILE)
+
+    con = sqlite3.connect(DATABASE_FILE)
+    con.row_factory = sqlite3.Row
+    cur = con.cursor()
+
+    pragmas = [
+        "PRAGMA synchronous = NORMAL;",
+        "PRAGMA busy_timeout = 5000;",
+        "PRAGMA cache_size = -20000;"
+    ]
+    for pragma in pragmas:
+        cur.execute(pragma)
+
+    try:
+        yield con, cur
+        con.commit()
+    except Exception:
+        con.rollback()
+        raise
+    finally:
+        cur.close()
+        con.close()
+
+
+def create_db(db: Path):
+    # create database
+    con = sqlite3.connect(db)
+    con.row_factory = sqlite3.Row
+    cur = con.cursor()
+
+    # switch to WAL for better concurrency
+    pragmas = [
+        "PRAGMA journal_mode = WAL;",
+        "PRAGMA synchronous = NORMAL;",
+        "PRAGMA busy_timeout = 5000;",
+        "PRAGMA cache_size = -20000;"
+    ]
+    for pragma in pragmas:
+        cur.execute(pragma)
+
+    # create user table
+    user_table = """
+        CREATE TABLE users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT NOT NULL UNIQUE,
+            password TEXT NOT NULL
+        );
+    """
+    cur.execute(user_table)
+
+    # add admin account
+    admin_query = """
+        INSERT INTO users (username, password) 
+        VALUES (?, ?);
+    """
+    admin_credentials = ("admin", generate_password_hash(ADMIN_PASSWORD))
+    cur.execute(admin_query, admin_credentials)
+
+    # commit changes and close
+    con.commit()
+    con.close()
 
 
 # ------------------ execution guard -----------------------------------------------------------------------------------

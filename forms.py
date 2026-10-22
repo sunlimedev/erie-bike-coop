@@ -27,7 +27,7 @@ class VisitorForm(FlaskForm):
         render_kw={"placeholder": "optional"}
     )
     note = StringField(
-        label="What is your note?",
+        label="Note",
         validators=[Optional()],
         render_kw={"placeholder": "optional"}
     )
@@ -53,7 +53,7 @@ class VolunteerForm(FlaskForm):
         choices=[
             ("general service", "General service hours"),
             ("school", "Service hours for school"),
-            ("correctional", "I'm from the Center"),
+            ("correctional", "I'm from the center"),
             ("help", "Here to help")
         ]
     )

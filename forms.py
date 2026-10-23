@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, EmailField, RadioField, SubmitField, IntegerField
+from wtforms import StringField, EmailField, RadioField, SubmitField, IntegerField, PasswordField
 from wtforms.validators import InputRequired, Optional
 
 
@@ -69,4 +69,15 @@ class VolunteerForm(FlaskForm):
     )
     submit = SubmitField(
         label="Done"
+    )
+
+
+class AdminLogInForm(FlaskForm):
+    password = PasswordField(
+        label="Admin Password",
+        validators=[InputRequired(message="Please enter your password.")],
+        render_kw={"autofocus": True}
+    )
+    submit = SubmitField(
+        label="Log in"
     )

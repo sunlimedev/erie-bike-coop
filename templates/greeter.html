@@ -5,7 +5,7 @@
 {% block header %}
     <div class="flex justify-end">
         <a href="{{ url_for('admin') }}" class="flex p-4 border-2 border-white text-white rounded-lg text-xl hover:bg-orange-600 hover:text-gray-50 hover:border-orange-600 font-semibold">
-            Admin View
+            Admin
         </a>
     </div>
 {% endblock %}
@@ -15,8 +15,8 @@
     <div class="text-gray-700 text-4xl font-semibold">
         Welcome to the Erie Bike Co-op!
     </div>
-    <!-- visitor -->
     <div class="columns-2 gap-5">
+        <!-- visitor -->
         <a href="{{ url_for('visitor_form') }}" class="block text-gray-50 text-4xl font-semibold rounded-lg p-8 bg-orange-600 text-center hover:bg-orange-700">
             Visitor
         </a>

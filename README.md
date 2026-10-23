@@ -7,6 +7,7 @@ FLASK_SECRET_KEY=
 SMTP_KEY=
 SENDER=
 RECIPIENT=
+ADMIN_PASSWORD=
 ```
 
 ### gunicorn.service

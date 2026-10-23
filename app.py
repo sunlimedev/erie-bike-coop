@@ -1,7 +1,6 @@
-# Erie Bike Cooperative Sign In Form System
+# Erie Bike Cooperative Logging System
 # This program records visitor and volunteer information.
-# Volunteers have their time and volunteer reason collected to assist with grants and such.
-# A backup program aggregates the daily .csv files into monthly tables and emails them to a specific address.
+# Volunteers have their time and volunteer reason collected to assist with obtaining grants and such.
 
 
 # ------------------ imports -------------------------------------------------------------------------------------------
@@ -17,17 +16,19 @@ from dotenv import load_dotenv
 from contextlib import contextmanager
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask import Flask, render_template, redirect, url_for, flash
-from flask_login import LoginManager, UserMixin
+from flask_login import LoginManager
 
-from forms import VisitorForm, VolunteerForm
+from forms import VisitorForm, VolunteerForm, AdminLogInForm
+from user import User
 
 
 # ------------------ constants -----------------------------------------------------------------------------------------
 
 
+# load environment file into environment variables
 load_dotenv()
 
-# host and port for debug server
+# host and port for debug server when invoked directly
 HOST = "0.0.0.0"
 PORT = 8080
 
@@ -41,6 +42,7 @@ ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "pass")
 # ------------------ flask config --------------------------------------------------------------------------------------
 
 
+# flask app instance
 app = Flask(__name__)
 
 # configure secret key for forms
@@ -50,28 +52,18 @@ app.config['SECRET_KEY'] = os.getenv("FLASK_SECRET_KEY", "abcdefghijklmnopqrstuv
 login_manager = LoginManager(app)
 
 
-# ------------------ classes -------------------------------------------------------------------------------------------
+# ------------------ user routes ---------------------------------------------------------------------------------------
 
 
-# not currently used but here for the future
-class User(UserMixin):
-    def __init__(self, user_id, username, hashed_password):
-        self.id = user_id
-        self.username = username
-        self.hashed_password = hashed_password
-
-
-# ------------------ routes --------------------------------------------------------------------------------------------
-
-
+# home page to select visitor or volunteer with admin panel link in top right corner
 @app.get("/")
-@app.get("/home")
-@app.get("/greeter")
 def greeter():
+    # GET
     return render_template("greeter.html")
 
 
-@app.route("/visitor_form", methods=["GET", "POST"])
+# visitor form with no hour tracking
+@app.route("/visitor/form", methods=["GET", "POST"])
 def visitor_form():
     # form
     form = VisitorForm()
@@ -84,13 +76,15 @@ def visitor_form():
     return render_template("visitor_form.html", form=form)
 
 
+# volunteer sign in/out select page
 @app.route("/volunteer", methods=["GET", "POST"])
 def volunteer():
     # GET
     pass
 
 
-@app.route("/volunteer_form", methods=["GET", "POST"])
+# volunteer form with hour tracking
+@app.route("/volunteer/form", methods=["GET", "POST"])
 def volunteer_form():
     # form
     form = VolunteerForm()
@@ -103,16 +97,31 @@ def volunteer_form():
     return render_template("volunteer_form.html", form=form)
 
 
-@app.route("/admin", methods=["GET", "POST"])
-def admin():
-    # GET
-    return render_template("admin.html")
-
-
-@app.route("/sign_out", methods=["GET", "POST"])
+# volunteer sign out page
+@app.route("/volunteer/sign_out", methods=["GET", "POST"])
 def sign_out():
     # GET
-    return render_template("sign_out.html")
+    return render_template("volunteer_sign_out.html")
+
+
+# ------------------ admin routes --------------------------------------------------------------------------------------
+
+
+# admin sign in page
+@app.route("/admin", methods=["GET", "POST"])
+def admin():
+    # form
+    form = AdminLogInForm()
+
+    # GET
+    return render_template("admin.html", form=form)
+
+
+# admin panel
+@app.get("/admin/panel")
+def admin_panel():
+    # GET
+    return render_template("admin_panel.html")
 
 
 # ------------------ helper functions ----------------------------------------------------------------------------------
@@ -200,6 +209,20 @@ def create_db(db: Path):
     # commit changes and close
     con.commit()
     con.close()
+
+
+def get_db_tables():
+    # list for table names
+    tables = []
+
+    with get_db() as (con, cur):
+        cur.execute("SELECT * FROM pragma_table_list();")
+
+        for row in cur.fetchall():
+            if not row["name"].startswith("sqlite_"):
+                tables.append(row["name"])
+
+    return tables
 
 
 # ------------------ execution guard -----------------------------------------------------------------------------------

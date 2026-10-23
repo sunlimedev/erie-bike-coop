@@ -1,5 +1,4 @@
 # Erie Bike Cooperative Sign In Form System
-import contextlib
 # This program records visitor and volunteer information.
 # Volunteers have their time and volunteer reason collected to assist with grants and such.
 # A backup program aggregates the daily .csv files into monthly tables and emails them to a specific address.
@@ -85,7 +84,7 @@ def visitor_form():
     return render_template("visitor_form.html", form=form)
 
 
-@app.route("/volunteer_form", methods=["GET", "POST"])
+@app.route("/volunteer", methods=["GET", "POST"])
 def volunteer():
     # GET
     pass
@@ -125,15 +124,19 @@ def load_user():
     return User("a", "a", "a")
 
 
+# mode string exists to use BEGIN IMMEDIATE transaction mode for immediate write locking when writing
 @contextmanager
-def get_db():
+def get_db(mode: str = "r"):
+    # create file if necessary with admin user
     if not DATABASE_FILE.is_file():
         create_db(DATABASE_FILE)
 
-    con = sqlite3.connect(DATABASE_FILE)
+    # connect to database without locking file
+    con = sqlite3.connect(DATABASE_FILE, isolation_level=None)
     con.row_factory = sqlite3.Row
     cur = con.cursor()
 
+    # execute pragmas for better concurrency
     pragmas = [
         "PRAGMA synchronous = NORMAL;",
         "PRAGMA busy_timeout = 5000;",
@@ -142,11 +145,18 @@ def get_db():
     for pragma in pragmas:
         cur.execute(pragma)
 
+    # lock file if writing
+    if mode == "w":
+        cur.execute("BEGIN IMMEDIATE")
+
+    # yield the database connection to the caller
     try:
         yield con, cur
-        con.commit()
+        if mode == "w":
+            con.commit()
     except Exception:
-        con.rollback()
+        if mode == "w":
+            con.rollback()
         raise
     finally:
         cur.close()

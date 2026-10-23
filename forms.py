@@ -51,10 +51,10 @@ class VolunteerForm(FlaskForm):
         label="What brings you in?",
         validators=[InputRequired(message="Please choose a reason for visiting.")],
         choices=[
-            ("general service", "General service hours"),
+            ("help", "Here to help"),
+            ("correctional", "I'm from the Center"),
             ("school", "Service hours for school"),
-            ("correctional", "I'm from the center"),
-            ("help", "Here to help")
+            ("general service", "General service hours")
         ]
     )
     email = EmailField(

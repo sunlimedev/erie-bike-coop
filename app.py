@@ -16,7 +16,7 @@ from dotenv import load_dotenv
 from contextlib import contextmanager
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask import Flask, render_template, redirect, url_for, flash
-from flask_login import LoginManager
+from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 
 from forms import VisitorForm, VolunteerForm, AdminLogInForm
 from user import User
@@ -77,10 +77,10 @@ def visitor_form():
 
 
 # volunteer sign in/out select page
-@app.route("/volunteer", methods=["GET", "POST"])
+@app.get("/volunteer")
 def volunteer():
     # GET
-    pass
+    return render_template("volunteer.html")
 
 
 # volunteer form with hour tracking
@@ -99,7 +99,7 @@ def volunteer_form():
 
 # volunteer sign out page
 @app.route("/volunteer/sign_out", methods=["GET", "POST"])
-def sign_out():
+def volunteer_sign_out():
     # GET
     return render_template("volunteer_sign_out.html")
 
@@ -113,12 +113,27 @@ def admin():
     # form
     form = AdminLogInForm()
 
+    # POST
+    if form.validate_on_submit():
+        with get_db() as (con, cur):
+            cur.execute("SELECT password FROM users WHERE id = 1")
+            row = cur.fetchone()
+
+            if check_password_hash(pwhash=row["password"], password=form.password.data):
+                user = load_user()
+                login_user(user)
+                return redirect(url_for("admin_panel"))
+            else:
+                print("Incorrect password.")
+                return render_template("admin.html", form=form)
+
     # GET
     return render_template("admin.html", form=form)
 
 
 # admin panel
 @app.get("/admin/panel")
+@login_required
 def admin_panel():
     # GET
     return render_template("admin_panel.html")
@@ -129,8 +144,13 @@ def admin_panel():
 
 # glue code to make the server not freak out
 @login_manager.user_loader
-def load_user():
-    return User("a", "a", "a")
+def load_user(user_id: int = 1):
+    # pull admin user from database
+    with get_db() as (con, cur):
+        cur.execute("SELECT username, password FROM users WHERE id = ?", (user_id, ))
+        user = cur.fetchone()
+
+    return User(user_id=1, username=user["username"], hashed_password=user["password"])
 
 
 # mode string exists to use BEGIN IMMEDIATE transaction mode for immediate write locking when writing
@@ -172,6 +192,7 @@ def get_db(mode: str = "r"):
         con.close()
 
 
+# create the sqlite file with admin user
 def create_db(db: Path):
     # create database
     con = sqlite3.connect(db)
@@ -211,13 +232,15 @@ def create_db(db: Path):
     con.close()
 
 
+# get table names in database
 def get_db_tables():
-    # list for table names
+    # create table list
     tables = []
 
     with get_db() as (con, cur):
         cur.execute("SELECT * FROM pragma_table_list();")
 
+        # extract the custom tables
         for row in cur.fetchall():
             if not row["name"].startswith("sqlite_"):
                 tables.append(row["name"])

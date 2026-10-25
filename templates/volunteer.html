@@ -1,0 +1,32 @@
+{% extends "_base.html" %}
+
+{% block title %}Volunteer Options{% endblock %}
+
+{% block header %}
+{% endblock %}
+
+{% block content %}
+    <!-- title -->
+    <div class="text-gray-700 text-4xl font-semibold">
+        Volunteer Options
+    </div>
+    <div class="flex flex-col gap-5">
+        <div class="columns-2 gap-5">
+            <!-- sign in -->
+            <a href="{{ url_for('visitor_form') }}" class="block text-gray-50 text-4xl font-semibold rounded-lg p-8 bg-orange-600 text-center hover:bg-orange-700">
+                Sign in
+            </a>
+            <!-- sign out -->
+            <a href="{{ url_for('volunteer_sign_out') }}" class="block text-gray-50 text-4xl font-semibold rounded-lg p-8 bg-orange-600 text-center hover:bg-orange-700">
+                Sign out
+            </a>
+        </div>
+        <!-- back to main -->
+        <a href="{{ url_for('greeter') }}" class="w-full font-semibold self-start rounded-lg text-orange-600 text-center p-3 border-2 border-orange-600 text-xl hover:bg-gray-200">
+            Back
+        </a>
+    </div>
+{% endblock %}
+
+{% block footer %}
+{% endblock %}

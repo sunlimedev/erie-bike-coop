@@ -2,55 +2,60 @@
 
 {% block title %}Volunteer Form{% endblock %}
 
-{% block header %}
-{% endblock %}
+{% block width %}w-7xl{% endblock %}
 
 {% block content %}
-    <!-- name/number -->
-    <div class="flex flex-row gap-3">
-        <div class="flex flex-col w-3/4 text-gray-700">
-            {{ form.name.label(class_="font-semibold text-2xl pb-1") }}
-            {{ form.name(class_="border-2 border-gray-400 bg-gray-100 p-3 text-xl rounded-lg") }}
+    <div class="flex flex-row gap-5 divide-x-2 divide-gray-200">
+        <div class="flex flex-col gap-5 w-7/9 pr-5">
+            <!-- name/number -->
+            <div class="flex flex-row gap-3">
+                <div class="flex flex-col w-3/4 text-gray-700">
+                    {{ form.name.label(class_="font-semibold text-2xl pb-1") }}
+                    {{ form.name(class_="border-2 border-gray-400 bg-gray-100 p-3 text-xl rounded-lg") }}
+                </div>
+                <div class="flex flex-col w-1/4 text-gray-700">
+                    {{ form.number.label(class_="font-semibold text-2xl pb-1") }}
+                    {{ form.number(class_="border-2 border-gray-400 bg-gray-100 p-3 text-xl rounded-lg") }}
+                </div>
+            </div>
+            <!-- reason -->
+            <div class="flex flex-col">
+                <div class="font-semibold text-gray-700 text-2xl pb-1">
+                    What brings you in?
+                </div>
+                <ul class="grid grid-cols-2 gap-3 text-xl text-gray-700">
+                    {% for reason in form.reason %}
+                    <li>
+                        {{ reason(class_="hidden peer") }}
+                        {{ reason.label(class_="block p-3 rounded-lg text-center border-2 border-gray-400 bg-gray-100 rounded cursor-pointer hover:bg-orange-50 hover:border-orange-600 hover:text-orange-600 peer-checked:bg-orange-200 peer-checked:border-orange-600 peer-checked:text-orange-600 peer-checked:hover:bg-orange-200 peer-checked:hover:border-orange-600 peer-checked:hover:text-orange-600block p-3 rounded-lg border-2 border-gray-400 bg-gray-100 rounded cursor-pointer hover:bg-orange-50 hover:border-orange-600 hover:text-orange-600 peer-checked:bg-orange-200 peer-checked:border-orange-600 peer-checked:text-orange-600 peer-checked:hover:bg-orange-200 peer-checked:hover:border-orange-600 peer-checked:hover:text-orange-600") }}
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            <!-- email -->
+            <div class="flex flex-col text-gray-700">
+                {{ form.email.label(class_="font-semibold text-2xl pb-1") }}
+                {{ form.email(class_="border-2 border-gray-400 bg-gray-100 p-3 text-xl rounded-lg") }}
+            </div>
+            <!-- note -->
+            <div class="flex flex-col text-gray-700">
+                {{ form.note.label(class_="font-semibold text-2xl pb-1") }}
+                {{ form.note(class_="border-2 border-gray-400 bg-gray-100 p-3 text-xl rounded-lg") }}
+            </div>
+            <!-- cancel and submit -->
+            <div class="grid grid-cols-2 gap-3">
+                <a href="{{ url_for('greeter') }}" class="font-semibold rounded-lg text-orange-600 text-center p-3 border-2 border-orange-600 text-xl hover:bg-gray-200">
+                    Cancel
+                </a>
+                {{ form.submit(class_="invisible font-semibold rounded-lg p-3 bg-orange-600 border-2 border-orange-600 text-xl text-gray-50 hover:bg-orange-700 hover:border-orange-700") }}
+            </div>
         </div>
-        <div class="flex flex-col w-1/4 text-gray-700">
-            {{ form.number.label(class_="font-semibold text-2xl pb-1") }}
-            {{ form.number(class_="border-2 border-gray-400 bg-gray-100 p-3 text-xl rounded-lg") }}
-        </div>
-    </div>
-    <!-- reason -->
-    <div class="flex flex-col">
-        <div class="font-semibold text-gray-700 text-2xl pb-1">
-            What brings you in?
-        </div>
-        <ul class="grid grid-cols-2 gap-3 text-xl text-gray-700">
-            {% for reason in form.reason %}
-            <li>
-                {{ reason(class_="hidden peer") }}
-                {{ reason.label(class_="block p-3 rounded-lg text-center border-2 border-gray-400 bg-gray-100 rounded cursor-pointer hover:bg-orange-50 hover:border-orange-600 hover:text-orange-600 peer-checked:bg-orange-200 peer-checked:border-orange-600 peer-checked:text-orange-600 peer-checked:hover:bg-orange-200 peer-checked:hover:border-orange-600 peer-checked:hover:text-orange-600block p-3 rounded-lg border-2 border-gray-400 bg-gray-100 rounded cursor-pointer hover:bg-orange-50 hover:border-orange-600 hover:text-orange-600 peer-checked:bg-orange-200 peer-checked:border-orange-600 peer-checked:text-orange-600 peer-checked:hover:bg-orange-200 peer-checked:hover:border-orange-600 peer-checked:hover:text-orange-600") }}
-            </li>
+        <ul class="w-2/9 block text-2xl text-gray-700 font-medium font-mono truncate gap-1 max-h-143 overflow-y-auto">
+            {% for volunteer in volunteers %}
+            <li>{{ volunteer }}</li>
             {% endfor %}
         </ul>
     </div>
-    <!-- email -->
-    <div class="flex flex-col text-gray-700">
-        {{ form.email.label(class_="font-semibold text-2xl pb-1") }}
-        {{ form.email(class_="border-2 border-gray-400 bg-gray-100 p-3 text-xl rounded-lg") }}
-    </div>
-    <!-- note -->
-    <div class="flex flex-col text-gray-700">
-        {{ form.note.label(class_="font-semibold text-2xl pb-1") }}
-        {{ form.note(class_="border-2 border-gray-400 bg-gray-100 p-3 text-xl rounded-lg") }}
-    </div>
-    <!-- cancel and submit -->
-    <div class="grid grid-cols-2 gap-3">
-        <a href="{{ url_for('greeter') }}" class="font-semibold rounded-lg text-orange-600 text-center p-3 border-2 border-orange-600 text-xl hover:bg-gray-200">
-            Cancel
-        </a>
-        {{ form.submit(class_="invisible font-semibold rounded-lg p-3 bg-orange-600 border-2 border-orange-600 text-xl text-gray-50 hover:bg-orange-700 hover:border-orange-700") }}
-    </div>
-{% endblock %}
-
-{% block footer %}
 {% endblock %}
 
 {% block script %}

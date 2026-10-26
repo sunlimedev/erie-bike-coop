@@ -2,9 +2,6 @@
 
 {% block title %}Volunteer Options{% endblock %}
 
-{% block header %}
-{% endblock %}
-
 {% block content %}
     <!-- title -->
     <div class="text-gray-700 text-4xl font-semibold">
@@ -13,7 +10,7 @@
     <div class="flex flex-col gap-5">
         <div class="columns-2 gap-5">
             <!-- sign in -->
-            <a href="{{ url_for('visitor_form') }}" class="block text-gray-50 text-4xl font-semibold rounded-lg p-8 bg-orange-600 text-center hover:bg-orange-700">
+            <a href="{{ url_for('volunteer_form') }}" class="block text-gray-50 text-4xl font-semibold rounded-lg p-8 bg-orange-600 text-center hover:bg-orange-700">
                 Sign in
             </a>
             <!-- sign out -->
@@ -26,7 +23,4 @@
             Back
         </a>
     </div>
-{% endblock %}
-
-{% block footer %}
 {% endblock %}

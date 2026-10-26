@@ -53,8 +53,8 @@ class VolunteerForm(FlaskForm):
         choices=[
             ("help", "Here to help"),
             ("correctional", "I'm from the Center"),
-            ("school", "Service hours for school"),
-            ("general service", "General service hours")
+            ("service", "Service hours"),
+            ("other", "Other")
         ]
     )
     email = EmailField(

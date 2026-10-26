@@ -2,6 +2,8 @@
 # This program records visitor and volunteer information.
 # Volunteers have their time and volunteer reason collected to assist with obtaining grants and such.
 
+# Hours of visitors are not recorded
+
 
 # ------------------ imports -------------------------------------------------------------------------------------------
 
@@ -36,7 +38,10 @@ PORT = 8080
 DATABASE_FILE = Path("app.db")
 
 # admin password
-ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "pass")
+ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "password")
+
+# ISO8601 datetime format for application
+DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%S"
 
 
 # ------------------ flask config --------------------------------------------------------------------------------------
@@ -70,7 +75,28 @@ def visitor_form():
 
     # POST
     if form.validate_on_submit():
-        print(form.data)
+        # get submission timestamp
+        now = datetime.now()
+        timestamp = now.strftime(DATETIME_FORMAT)
+
+        # insert the new data into the database and insert None for empty strings
+        with get_db("w") as (con, cur):
+            statement = f"""
+                INSERT INTO visitor_log (datetime, name, reason, email, note)
+                VALUES (?, ?, ?, ?, ?)
+            """
+            parameters = (
+                timestamp,
+                form.name.data,
+                form.reason.data,
+                form.email.data if form.email.data.strip() else None,
+                form.note.data if form.note.data.strip() else None
+            )
+            cur.execute(statement, parameters)
+
+        # show success notice on main page
+        flash(message=f"Thanks for visiting, {form.name.data}!", category="success")
+        return redirect(url_for("greeter"))
 
     # GET
     return render_template("visitor_form.html", form=form)
@@ -86,15 +112,43 @@ def volunteer():
 # volunteer form with hour tracking
 @app.route("/volunteer/form", methods=["GET", "POST"])
 def volunteer_form():
+
+
+    # NOT DONE
+
     # form
     form = VolunteerForm()
 
     # POST
     if form.validate_on_submit():
-        print(form.data)
+        # get submission timestamp
+        now = datetime.now()
+        timestamp = now.strftime(DATETIME_FORMAT)
+
+        # insert the new data into the database and insert None for empty strings
+        with get_db("w") as (con, cur):
+
+            # insert the new data into the database and insert None for empty strings
+            statement = f"""
+                INSERT INTO volunteer_log (datetime, name, reason, email, note, hours)
+                VALUES (?, ?, ?, ?, ?, ?)
+            """
+            parameters = (
+                timestamp,
+                form.name.data,
+                form.reason.data,
+                form.email.data if form.email.data.strip() else None,
+                form.note.data if form.note.data.strip() else None,
+                0.0
+            )
+            cur.execute(statement, parameters)
+
+        # show success notice on main page
+        flash(message=f"Thanks for volunteering, {form.name.data}! Remember to sign out before you leave.", category="success")
+        return redirect(url_for("greeter"))
 
     # GET
-    return render_template("volunteer_form.html", form=form)
+    return render_template("volunteer_form.html", form=form, volunteers=["a"])
 
 
 # volunteer sign out page
@@ -124,7 +178,6 @@ def admin():
                 login_user(user)
                 return redirect(url_for("admin_panel"))
             else:
-                print("Incorrect password.")
                 return render_template("admin.html", form=form)
 
     # GET
@@ -142,12 +195,12 @@ def admin_panel():
 # ------------------ helper functions ----------------------------------------------------------------------------------
 
 
-# glue code to make the server not freak out
+# admin data loader
 @login_manager.user_loader
 def load_user(user_id: int = 1):
     # pull admin user from database
     with get_db() as (con, cur):
-        cur.execute("SELECT username, password FROM users WHERE id = ?", (user_id, ))
+        cur.execute("SELECT username, password FROM users WHERE id = ?", [user_id])
         user = cur.fetchone()
 
     return User(user_id=1, username=user["username"], hashed_password=user["password"])
@@ -220,15 +273,57 @@ def create_db(db: Path):
     cur.execute(user_table)
 
     # add admin account
-    admin_query = """
+    admin_statement = """
         INSERT INTO users (username, password) 
         VALUES (?, ?);
     """
     admin_credentials = ("admin", generate_password_hash(ADMIN_PASSWORD))
-    cur.execute(admin_query, admin_credentials)
+    cur.execute(admin_statement, admin_credentials)
+
+    # create volunteers table
+    volunteers_statement = f"""
+        CREATE TABLE volunteers (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            volunteer_number INTEGER NOT NULL,
+            name TEXT NOT NULL,
+            reason TEXT NOT NULL,
+            email TEXT,
+            phone TEXT,
+            note TEXT
+        );
+    """
+    cur.execute(volunteers_statement)
+
+    # create visitor log table
+    visitor_log_statement = f"""
+        CREATE TABLE visitor_log (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            datetime TEXT NOT NULL,
+            name TEXT NOT NULL,
+            reason TEXT NOT NULL,
+            email TEXT,
+            note TEXT
+        );
+    """
+    cur.execute(visitor_log_statement)
+
+    # create volunteer log table
+    volunteer_log_statement = f"""
+        CREATE TABLE volunteer_log (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            datetime TEXT NOT NULL,
+            name TEXT NOT NULL,
+            reason TEXT NOT NULL,
+            email TEXT,
+            note TEXT,
+            hours REAL NOT NULL
+        );
+    """
+    cur.execute(volunteer_log_statement)
 
     # commit changes and close
     con.commit()
+    cur.close()
     con.close()
 
 

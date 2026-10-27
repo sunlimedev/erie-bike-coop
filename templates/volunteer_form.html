@@ -2,11 +2,19 @@
 
 {% block title %}Volunteer Form{% endblock %}
 
-{% block width %}w-7xl{% endblock %}
+{% block width %}w-6xl{% endblock %}
 
 {% block content %}
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+    <!-- validation error -->
+    <div id="alert" class="w-full p-5 text-2xl rounded-lg text-red-600 border-2 border-red-600 bg-red-200">
+        {{ messages[-1] }}
+    </div>
+    {% endif %}
+    {% endwith %}
     <div class="flex flex-row gap-5 divide-x-2 divide-gray-200">
-        <div class="flex flex-col gap-5 w-7/9 pr-5">
+        <div class="flex flex-col gap-5 w-2/3 pr-5">
             <!-- name/number -->
             <div class="flex flex-row gap-3">
                 <div class="flex flex-col w-3/4 text-gray-700">
@@ -27,7 +35,7 @@
                     {% for reason in form.reason %}
                     <li>
                         {{ reason(class_="hidden peer") }}
-                        {{ reason.label(class_="block p-3 rounded-lg text-center border-2 border-gray-400 bg-gray-100 rounded cursor-pointer hover:bg-orange-50 hover:border-orange-600 hover:text-orange-600 peer-checked:bg-orange-200 peer-checked:border-orange-600 peer-checked:text-orange-600 peer-checked:hover:bg-orange-200 peer-checked:hover:border-orange-600 peer-checked:hover:text-orange-600block p-3 rounded-lg border-2 border-gray-400 bg-gray-100 rounded cursor-pointer hover:bg-orange-50 hover:border-orange-600 hover:text-orange-600 peer-checked:bg-orange-200 peer-checked:border-orange-600 peer-checked:text-orange-600 peer-checked:hover:bg-orange-200 peer-checked:hover:border-orange-600 peer-checked:hover:text-orange-600") }}
+                        {{ reason.label(class_="block p-3 rounded-lg text-center border-2 border-gray-400 bg-gray-100 rounded cursor-pointer hover:bg-orange-50 hover:border-orange-600 hover:text-orange-600 peer-checked:bg-orange-200 peer-checked:border-orange-600 peer-checked:text-orange-600 peer-checked:hover:bg-orange-200 peer-checked:hover:border-orange-600 peer-checked:hover:text-orange-600") }}
                     </li>
                     {% endfor %}
                 </ul>
@@ -50,9 +58,9 @@
                 {{ form.submit(class_="invisible font-semibold rounded-lg p-3 bg-orange-600 border-2 border-orange-600 text-xl text-gray-50 hover:bg-orange-700 hover:border-orange-700") }}
             </div>
         </div>
-        <ul class="w-2/9 block text-2xl text-gray-700 font-medium font-mono truncate gap-1 max-h-143 overflow-y-auto">
-            {% for volunteer in volunteers %}
-            <li>{{ volunteer }}</li>
+        <ul class="block text-2xl text-gray-700 font-medium font-mono truncate gap-1 max-h-143 overflow-y-auto">
+            {% for pair in volunteer_pairs %}
+            <li>{{ pair }}</li>
             {% endfor %}
         </ul>
     </div>
@@ -72,20 +80,28 @@
         const isReasonSelected = Array.from(reasonRadios).some(radio => radio.checked);
         const isNumberFilled = numberInput.value !== '' && !isNaN(numberInput.value) && Number(numberInput.value) > 0;
 
-        if ((isNameFilled && isReasonSelected) || isNumberFilled)
+        if((isNameFilled && isReasonSelected) || isNumberFilled)
         {
             submitBtn.classList.remove('invisible');
+            reasonRadios.forEach(radio =>
+            {
+                radio.required = false;
+            });
         }
         else
         {
             submitBtn.classList.add('invisible');
+            reasonRadios.forEach(radio =>
+            {
+                radio.required = true;
+            });
         }
     }
 
     // clear number if name
     nameInput.addEventListener('input', () =>
     {
-        if (nameInput.value.trim() !== '')
+        if(nameInput.value.trim() !== '')
         {
             numberInput.value = '';
         }
@@ -95,7 +111,7 @@
     // clear name if number
     numberInput.addEventListener('input', () =>
     {
-        if (numberInput.value.trim() !== '')
+        if(numberInput.value.trim() !== '')
         {
             nameInput.value = '';
         }
@@ -103,5 +119,7 @@
     });
 
     reasonRadios.forEach(radio => radio.addEventListener('change', checkInputs));
+
+    checkInputs();
 </script>
 {% endblock %}

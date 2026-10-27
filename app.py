@@ -9,7 +9,6 @@
 
 
 import os
-import csv
 import sqlite3
 
 from pathlib import Path
@@ -17,8 +16,9 @@ from datetime import datetime
 from dotenv import load_dotenv
 from contextlib import contextmanager
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask import Flask, render_template, redirect, url_for, flash
+from flask import Flask, render_template, redirect, url_for, flash, request
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
+from wtforms.validators import Optional
 
 from forms import VisitorForm, VolunteerForm, AdminLogInForm
 from user import User
@@ -56,6 +56,13 @@ app.config['SECRET_KEY'] = os.getenv("FLASK_SECRET_KEY", "abcdefghijklmnopqrstuv
 # not doing anything at the moment
 login_manager = LoginManager(app)
 
+# page to log in
+login_manager.login_view = "admin"
+
+# custom login manager error
+login_manager.login_message = 'Please log in.'
+login_manager.login_message_category = 'error'
+
 
 # ------------------ user routes ---------------------------------------------------------------------------------------
 
@@ -87,15 +94,15 @@ def visitor_form():
             """
             parameters = (
                 timestamp,
-                form.name.data,
+                form.name.data.strip(),
                 form.reason.data,
-                form.email.data if form.email.data.strip() else None,
-                form.note.data if form.note.data.strip() else None
+                form.email.data.strip() if form.email.data.strip() else None,
+                form.note.data.strip() if form.note.data.strip() else None
             )
             cur.execute(statement, parameters)
 
         # show success notice on main page
-        flash(message=f"Thanks for visiting, {form.name.data}!", category="success")
+        flash(message=f"Thanks for visiting, {form.name.data}!")
         return redirect(url_for("greeter"))
 
     # GET
@@ -112,43 +119,75 @@ def volunteer():
 # volunteer form with hour tracking
 @app.route("/volunteer/form", methods=["GET", "POST"])
 def volunteer_form():
-
-
-    # NOT DONE
-
     # form
     form = VolunteerForm()
 
+    # data
+    volunteer_numbers, names = get_volunteers()
+    volunteer_pairs = []
+
+    for i in range(len(volunteer_numbers)):
+        # index 0 has numbers, index 1 has names
+        try:
+            # try to slice out name with last initial: Johnny A
+            space = names[i].index(" ")
+            abbr_name = names[i][:space + 2]
+
+            volunteer_pairs.append(f"{volunteer_numbers[i]} - {abbr_name}")
+        except ValueError:
+            volunteer_pairs.append(f"{volunteer_numbers[i]} - {names[i]}")
+
     # POST
+    if request.method == "POST":
+        # don't validate reason if unnecessary
+        if request.method == "POST" and request.form.get("number", "").strip():
+            form.reason.validators = [Optional()]
+
     if form.validate_on_submit():
         # get submission timestamp
         now = datetime.now()
         timestamp = now.strftime(DATETIME_FORMAT)
 
-        # insert the new data into the database and insert None for empty strings
-        with get_db("w") as (con, cur):
+        # check if the user is a regular volunteer
+        if form.number.data:
+            if form.number.data not in volunteer_numbers:
+                # turn volunteer number field red
+                form.name.render_kw = {"autofocus": False}
+                form.number.render_kw = {"autofocus": True}
 
-            # insert the new data into the database and insert None for empty strings
-            statement = f"""
-                INSERT INTO volunteer_log (datetime, name, reason, email, note, hours)
-                VALUES (?, ?, ?, ?, ?, ?)
-            """
-            parameters = (
-                timestamp,
-                form.name.data,
-                form.reason.data,
-                form.email.data if form.email.data.strip() else None,
-                form.note.data if form.note.data.strip() else None,
-                0.0
-            )
+                flash("Invalid volunteer number. Select one from the list or ask to be added to the volunteer list.")
+                return render_template("volunteer_form.html", form=form, volunteer_pairs=sorted(volunteer_pairs))
+            # valid volunteer number
+            else:
+                with get_db("w") as (con, cur):
+                    query = f"SELECT name, reason, email FROM volunteers WHERE volunteer_number = ?"
+                    cur.execute(query, [form.number.data])
+                    data = cur.fetchone()
+
+                    statement = f"INSERT INTO volunteer_log (datetime, name, reason, email, hours) VALUES (?, ?, ?, ?, ?)"
+                    parameters = (timestamp, data["name"], data["reason"], data["email"], 0.0)
+                    cur.execute(statement, parameters)
+
+                    flash(f"Hi, {data['name']}! Remember to sign out before leaving.")
+                    return redirect(url_for("greeter"))
+        # normal form submission
+        if not (form.name.data or "").strip():
+            # just whitespace for name
+            form.name.render_kw = {"autofocus": False}
+
+            flash("Please enter your name and select a reason for volunteering.")
+            return render_template("volunteer_form.html", form=form, volunteer_pairs=sorted(volunteer_pairs))
+        # good submission
+        with get_db("w") as (con, cur):
+            statement = f"INSERT INTO volunteer_log (datetime, name, reason, email, hours) VALUES (?, ?, ?, ?, ?)"
+            parameters = (timestamp, form.name.data.strip(), form.reason.data, form.email.data, 0.0)
             cur.execute(statement, parameters)
 
-        # show success notice on main page
-        flash(message=f"Thanks for volunteering, {form.name.data}! Remember to sign out before you leave.", category="success")
-        return redirect(url_for("greeter"))
+            flash(f"Hi, {form.name.data}! Remember to sign out before leaving.")
+            return redirect(url_for("greeter"))
 
     # GET
-    return render_template("volunteer_form.html", form=form, volunteers=["a"])
+    return render_template("volunteer_form.html", form=form, volunteer_pairs=sorted(volunteer_pairs))
 
 
 # volunteer sign out page
@@ -341,6 +380,23 @@ def get_db_tables():
                 tables.append(row["name"])
 
     return tables
+
+
+# get regular volunteers
+def get_volunteers():
+    # create lists
+    volunteer_numbers = []
+    names = []
+
+    with get_db() as (con, cur):
+        cur.execute("SELECT volunteer_number, name FROM volunteers;")
+
+        # extract the data
+        for row in cur.fetchall():
+            volunteer_numbers.append(row[0])
+            names.append(row[1])
+
+    return volunteer_numbers, names
 
 
 # ------------------ execution guard -----------------------------------------------------------------------------------

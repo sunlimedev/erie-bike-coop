@@ -11,41 +11,43 @@
 {% endblock %}
 
 {% block content %}
-    <!-- title -->
-    <div class="text-gray-700 text-4xl font-semibold">
-        Welcome to the Erie Bike Co-op!
-    </div>
-    {% with messages = get_flashed_messages() %}
-    {% if messages %}
-    <!-- validation error -->
-    <div id="alert" class="w-full p-5 text-2xl rounded-lg text-green-600 border-2 border-green-600 bg-green-200">
-        {{ messages[-1] }}
-    </div>
-    {% endif %}
-    {% endwith %}
-    <div class="columns-2 gap-5">
-        <!-- visitor -->
-        <a href="{{ url_for('visitor_form') }}" class="block text-gray-50 text-4xl font-semibold rounded-lg p-8 bg-orange-600 text-center hover:bg-orange-700">
-            Visitor
-        </a>
-        <!-- volunteer -->
-        <a href="{{ url_for('volunteer') }}" class="block text-gray-50 text-4xl font-semibold rounded-lg p-8 bg-orange-600 text-center hover:bg-orange-700">
-            Volunteer
-        </a>
-    </div>
+    <main class="w-4xl flex flex-col bg-gray-50 rounded-xl p-5 gap-5 border-2 border-gray-100">
+        <!-- title -->
+        <div class="text-gray-700 text-4xl font-semibold">
+            Welcome to the Erie Bike Co-op!
+        </div>
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <!-- validation error -->
+        <div id="alert" class="w-full p-5 text-2xl rounded-lg text-green-600 border-2 border-green-600 bg-green-200">
+            {{ messages[-1] }}
+        </div>
+        {% endif %}
+        {% endwith %}
+        <div class="columns-2 gap-5">
+            <!-- visitor -->
+            <a href="{{ url_for('visitor_form') }}" class="block text-gray-50 text-4xl font-semibold rounded-lg p-8 bg-orange-600 text-center hover:bg-orange-700">
+                Visitor
+            </a>
+            <!-- volunteer -->
+            <a href="{{ url_for('volunteer') }}" class="block text-gray-50 text-4xl font-semibold rounded-lg p-8 bg-orange-600 text-center hover:bg-orange-700">
+                Volunteer
+            </a>
+        </div>
+    </main>
 {% endblock %}
 
 {% block script %}
-<script>
-    setTimeout(() =>
-    {
-        const alertBox = document.getElementById('alert');
-        if (alertBox)
+    <script>
+        setTimeout(() =>
         {
-            alertBox.style.transition = 'opacity 1s ease';
-            alertBox.style.opacity = '0';
-            setTimeout(() => alertBox.remove(), 1000);
-        }
-    }, 6000);
-</script>
+            const alertBox = document.getElementById('alert');
+            if (alertBox)
+            {
+                alertBox.style.transition = 'opacity 1s ease';
+                alertBox.style.opacity = '0';
+                setTimeout(() => alertBox.remove(), 1000);
+            }
+        }, 6000);
+    </script>
 {% endblock %}

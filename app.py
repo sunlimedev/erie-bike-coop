@@ -15,13 +15,13 @@ from pathlib import Path
 from datetime import datetime
 from dotenv import load_dotenv
 from contextlib import contextmanager
+from wtforms.validators import Optional
+from flask_login import LoginManager, login_user, login_required
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask import Flask, render_template, redirect, url_for, flash, request
-from flask_login import LoginManager, login_user, login_required, logout_user, current_user
-from wtforms.validators import Optional
 
-from forms import VisitorForm, VolunteerForm, AdminLogInForm
 from user import User
+from forms import VisitorForm, VolunteerForm, AdminLogInForm
 
 
 # ------------------ constants -----------------------------------------------------------------------------------------
@@ -51,7 +51,7 @@ DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%S"
 app = Flask(__name__)
 
 # configure secret key for forms
-app.config['SECRET_KEY'] = os.getenv("FLASK_SECRET_KEY", "abcdefghijklmnopqrstuvwxyz")
+app.config['SECRET_KEY'] = os.getenv("FLASK_SECRET_KEY", "abcdefghijklmnopqrstuwvxyz")
 
 # not doing anything at the moment
 login_manager = LoginManager(app)
@@ -126,6 +126,9 @@ def volunteer_form():
     volunteer_numbers, names = get_volunteers()
     volunteer_pairs = []
 
+    if len(volunteer_numbers) == 0:
+        volunteer_pairs.append("No saved volunteers.")
+
     for i in range(len(volunteer_numbers)):
         # index 0 has numbers, index 1 has names
         try:
@@ -155,7 +158,7 @@ def volunteer_form():
                 form.name.render_kw = {"autofocus": False}
                 form.number.render_kw = {"autofocus": True}
 
-                flash("Invalid volunteer number. Select one from the list or ask to be added to the volunteer list.")
+                flash("Invalid volunteer number, please ask to be given a number if you volunteer frequently.")
                 return render_template("volunteer_form.html", form=form, volunteer_pairs=sorted(volunteer_pairs))
             # valid volunteer number
             else:
@@ -179,8 +182,8 @@ def volunteer_form():
             return render_template("volunteer_form.html", form=form, volunteer_pairs=sorted(volunteer_pairs))
         # good submission
         with get_db("w") as (con, cur):
-            statement = f"INSERT INTO volunteer_log (datetime, name, reason, email, hours) VALUES (?, ?, ?, ?, ?)"
-            parameters = (timestamp, form.name.data.strip(), form.reason.data, form.email.data, 0.0)
+            statement = f"INSERT INTO volunteer_log (datetime, name, reason, email, note, hours) VALUES (?, ?, ?, ?, ?, ?)"
+            parameters = (timestamp, form.name.data.strip(), form.reason.data, form.email.data, form.note.data, 0.0)
             cur.execute(statement, parameters)
 
             flash(f"Hi, {form.name.data}! Remember to sign out before leaving.")

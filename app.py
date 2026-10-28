@@ -167,11 +167,20 @@ def volunteer_form():
                     cur.execute(query, [form.number.data])
                     data = cur.fetchone()
 
+                    # duplicate prevention
+                    today_names, today_hours = get_today_volunteers()
+
+                    if data["name"] in today_names:
+                        index = today_names.index(data["name"])
+                        if today_hours[index] == 0:
+                            flash(f"You are already signed in, {data["name"]}.")
+                            return render_template("volunteer_form.html", form=form, volunteer_pairs=sorted(volunteer_pairs))
+
                     statement = f"INSERT INTO volunteer_log (datetime, name, reason, email, hours) VALUES (?, ?, ?, ?, ?)"
                     parameters = (timestamp, data["name"], data["reason"], data["email"], 0.0)
                     cur.execute(statement, parameters)
 
-                    flash(f"Hi, {data['name']}! Remember to sign out before leaving.")
+                    flash(f"Welcome, {data['name']}! Remember to sign out before leaving.")
                     return redirect(url_for("greeter"))
         # normal form submission
         if not (form.name.data or "").strip():
@@ -180,6 +189,16 @@ def volunteer_form():
 
             flash("Please enter your name and select a reason for volunteering.")
             return render_template("volunteer_form.html", form=form, volunteer_pairs=sorted(volunteer_pairs))
+
+        # duplicate prevention
+        today_names, today_hours = get_today_volunteers()
+
+        if form.name.data in today_names:
+            index = today_names.index(form.name.data)
+            if today_hours[index] == 0:
+                flash(f"You are already signed in, {form.name.data}.")
+                return render_template("volunteer_form.html", form=form, volunteer_pairs=sorted(volunteer_pairs))
+
         # good submission
         with get_db("w") as (con, cur):
             statement = f"INSERT INTO volunteer_log (datetime, name, reason, email, note, hours) VALUES (?, ?, ?, ?, ?, ?)"
@@ -400,6 +419,22 @@ def get_volunteers():
             names.append(row[1])
 
     return volunteer_numbers, names
+
+
+# get todays volunteers with hours
+def get_today_volunteers():
+    with get_db() as (con, cur):
+        query = "SELECT name, hours FROM volunteer_log WHERE date (datetime) = date ('now', 'localtime');"
+        cur.execute(query)
+
+        names = []
+        hours = []
+
+        for row in cur.fetchall():
+            names.append(row[0])
+            hours.append(row[1])
+
+    return names, hours
 
 
 # ------------------ execution guard -----------------------------------------------------------------------------------

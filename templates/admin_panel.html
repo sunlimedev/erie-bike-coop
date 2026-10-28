@@ -2,14 +2,6 @@
 
 {% block title %}Admin Panel{% endblock %}
 
-{% block header %}
-    <div class="flex justify-end">
-        <a href="{{ url_for('greeter') }}" class="flex p-4 border-2 border-white text-white rounded-lg text-xl hover:bg-orange-600 hover:text-gray-50 hover:border-orange-600 font-semibold">
-            Exit
-        </a>
-    </div>
-{% endblock %}
-
 {% block content %}
     <main class="w-4xl flex flex-col bg-gray-50 rounded-xl p-5 gap-5 border-2 border-gray-100">
         <!-- title -->
@@ -34,5 +26,9 @@
                 View historic data
             </a>
         </div>
+        <!-- back to main -->
+        <a href="{{ url_for('greeter') }}" class="w-full font-semibold self-start rounded-lg text-orange-600 text-center p-3 border-2 border-orange-600 text-xl hover:bg-gray-200">
+            Exit
+        </a>
     </main>
 {% endblock %}

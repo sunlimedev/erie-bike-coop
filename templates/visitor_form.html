@@ -6,9 +6,9 @@
     <form method="POST" class="w-4xl flex flex-col bg-gray-50 rounded-xl p-5 gap-5 border-2 border-gray-100">
         <!-- csrf token -->
         {{ form.hidden_tag() }}
+        <!-- validation error -->
         {% with messages = get_flashed_messages() %}
         {% if messages %}
-        <!-- validation error -->
         <div id="alert" class="w-full p-5 text-2xl rounded-lg text-red-600 border-2 border-red-600 bg-red-200">
             {{ messages[-1] }}
         </div>
@@ -28,7 +28,7 @@
                 {% for reason in form.reason %}
                 <li>
                     {{ reason(class_="hidden peer") }}
-                    {{ reason.label(class_="block p-3 rounded-lg text-center border-2 border-gray-400 bg-gray-100 rounded cursor-pointer hover:bg-orange-50 hover:border-orange-600 hover:text-orange-600 peer-checked:bg-orange-200 peer-checked:border-orange-600 peer-checked:text-orange-600 peer-checked:hover:bg-orange-200 peer-checked:hover:border-orange-600 peer-checked:hover:text-orange-600block p-3 rounded-lg border-2 border-gray-400 bg-gray-100 rounded cursor-pointer hover:bg-orange-50 hover:border-orange-600 hover:text-orange-600 peer-checked:bg-orange-200 peer-checked:border-orange-600 peer-checked:text-orange-600 peer-checked:hover:bg-orange-200 peer-checked:hover:border-orange-600 peer-checked:hover:text-orange-600") }}
+                    {{ reason.label(class_="block p-3 rounded-lg border-2 border-gray-400 bg-gray-100 rounded cursor-pointer hover:bg-orange-50 hover:border-orange-600 hover:text-orange-600 peer-checked:bg-orange-200 peer-checked:border-orange-600 peer-checked:text-orange-600 peer-checked:hover:bg-orange-200 peer-checked:hover:border-orange-600 peer-checked:hover:text-orange-600") }}
                 </li>
                 {% endfor %}
             </ul>

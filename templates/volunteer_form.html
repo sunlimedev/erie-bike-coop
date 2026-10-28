@@ -6,9 +6,9 @@
     <form method="POST" class="w-7xl flex flex-col bg-gray-50 rounded-xl p-5 gap-5 border-2 border-gray-100">
         <!-- csrf token -->
         {{ form.hidden_tag() }}
+        <!-- validation error -->
         {% with messages = get_flashed_messages() %}
         {% if messages %}
-        <!-- validation error -->
         <div id="alert" class="w-full p-5 text-2xl rounded-lg text-red-600 border-2 border-red-600 bg-red-200">
             {{ messages[-1] }}
         </div>

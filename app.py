@@ -16,12 +16,12 @@ from datetime import datetime
 from dotenv import load_dotenv
 from contextlib import contextmanager
 from wtforms.validators import Optional
-from flask_login import LoginManager, login_user, login_required
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask import Flask, render_template, redirect, url_for, flash, request
+from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 
 from user import User
-from forms import VisitorForm, VolunteerForm, AdminLogInForm
+from forms import VisitorForm, VolunteerSignInForm, AdminLogInForm, VolunteerSignOutForm
 
 
 # ------------------ constants -----------------------------------------------------------------------------------------
@@ -70,6 +70,10 @@ login_manager.login_message_category = 'error'
 # home page to select visitor or volunteer with admin panel link in top right corner
 @app.get("/")
 def greeter():
+    # checks
+    if current_user.is_authenticated:
+        logout_user()
+
     # GET
     return render_template("greeter.html")
 
@@ -120,7 +124,7 @@ def volunteer():
 @app.route("/volunteer/form", methods=["GET", "POST"])
 def volunteer_form():
     # form
-    form = VolunteerForm()
+    form = VolunteerSignInForm()
 
     # data
     volunteer_numbers, names = get_volunteers()
@@ -193,8 +197,12 @@ def volunteer_form():
         # duplicate prevention
         today_names, today_hours = get_today_volunteers()
 
+        print(form.name.data)
+        print(today_names)
+
         if form.name.data in today_names:
             index = today_names.index(form.name.data)
+            print(today_hours[index])
             if today_hours[index] == 0:
                 flash(f"You are already signed in, {form.name.data}.")
                 return render_template("volunteer_form.html", form=form, volunteer_pairs=sorted(volunteer_pairs))
@@ -215,8 +223,37 @@ def volunteer_form():
 # volunteer sign out page
 @app.route("/volunteer/sign_out", methods=["GET", "POST"])
 def volunteer_sign_out():
+    # form
+    form = VolunteerSignOutForm()
+
+    # data
+    volunteers = get_sign_out_list()
+    if len(volunteers) == 0:
+        flash("There is no one to sign out.")
+        return redirect(url_for("volunteer"))
+    form.names.choices = [(person["name"], person["name"]) for person in volunteers]
+
+    # POST
+    if form.validate_on_submit():
+        selected_names = form.names.data
+
+        if len(selected_names) == 0:
+            flash("No one was signed out.")
+            return redirect(url_for("greeter"))
+
+        with get_db("w") as (con, cur):
+            for person in volunteers:
+                if person["name"] in selected_names:
+                    statement = "UPDATE volunteer_log SET hours = ? WHERE id = ?"
+                    parameters = (round(person["hours"] + 0.01, 2), person["id"])
+                    cur.execute(statement, parameters)
+
+        names_string = ", ".join(selected_names)
+        flash(f"{names_string} {"has" if len(selected_names) == 1 else "have"} been signed out.")
+        return redirect(url_for("greeter"))
+
     # GET
-    return render_template("volunteer_sign_out.html")
+    return render_template("volunteer_sign_out.html", form=form, volunteers=volunteers)
 
 
 # ------------------ admin routes --------------------------------------------------------------------------------------
@@ -415,13 +452,13 @@ def get_volunteers():
 
         # extract the data
         for row in cur.fetchall():
-            volunteer_numbers.append(row[0])
-            names.append(row[1])
+            volunteer_numbers.append(row["volunteer_number"])
+            names.append(row["name"])
 
     return volunteer_numbers, names
 
 
-# get todays volunteers with hours
+# get today's volunteers with hours
 def get_today_volunteers():
     with get_db() as (con, cur):
         query = "SELECT name, hours FROM volunteer_log WHERE date (datetime) = date ('now', 'localtime');"
@@ -431,10 +468,37 @@ def get_today_volunteers():
         hours = []
 
         for row in cur.fetchall():
-            names.append(row[0])
-            hours.append(row[1])
+            names.append(row["name"])
+            hours.append(row["hours"])
 
-    return names, hours
+    # lists are reversed so most recent entries come first in case there are two valid sessions on the same day
+    return list(reversed(names)), list(reversed(hours))
+
+
+# generate list for sign out page
+def get_sign_out_list():
+    with get_db() as (con, cur):
+        query = "SELECT id, datetime, name, hours FROM volunteer_log WHERE date (datetime) = date ('now', 'localtime');"
+        cur.execute(query)
+
+        volunteers = []
+
+        for row in cur.fetchall():
+            if row["hours"] != 0:
+                continue
+
+            start = datetime.strptime(row["datetime"], DATETIME_FORMAT)
+            end = datetime.now()
+            duration = end - start
+            hours = round(duration.total_seconds() / 3600, 2)
+
+            volunteers.append({
+                "id": row["id"],
+                "name": row["name"],
+                "hours": hours
+            })
+
+    return volunteers
 
 
 # ------------------ execution guard -----------------------------------------------------------------------------------

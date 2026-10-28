@@ -1,6 +1,10 @@
 # erie-bike-coop
 Automating some work and data collection so people can do what they're best at.
 
+### Setup
+- Installed and started`Tailscale`
+- Installed `python3-venv`
+
 ### .env
 ```commandline
 FLASK_SECRET_KEY=

@@ -1,6 +1,10 @@
+# Import file
+
+
 from flask_wtf import FlaskForm
-from wtforms import StringField, EmailField, RadioField, SubmitField, IntegerField, PasswordField
 from wtforms.validators import InputRequired, Optional
+from wtforms.widgets.core import CheckboxInput, ListWidget
+from wtforms.fields import StringField, EmailField, RadioField, SubmitField, IntegerField, PasswordField, SelectMultipleField
 
 
 class VisitorForm(FlaskForm):
@@ -13,12 +17,12 @@ class VisitorForm(FlaskForm):
         label="What brings you in?",
         validators=[InputRequired(message="Please choose a reason for visiting.")],
         choices=[
-            ("repair", "Repairing a bike"),
-            ("earn bike", "Earn-a-Bike session"),
-            ("info", "Getting info / Just curious"),
-            ("purchase bike", "Purchasing bike or parts"),
-            ("donate bike", "Donating bike or parts"),
-            ("donate money", "Donating money")
+            ("Repair", "Repairing a bike"),
+            ("Earn-a-Bike", "Earn-a-Bike session"),
+            ("Info", "Getting info / Just curious"),
+            ("Purchase bike or parts", "Purchasing bike or parts"),
+            ("Donate bike or parts", "Donating bike or parts"),
+            ("Donate money", "Donating money")
         ]
     )
     email = EmailField(
@@ -36,7 +40,7 @@ class VisitorForm(FlaskForm):
     )
 
 
-class VolunteerForm(FlaskForm):
+class VolunteerSignInForm(FlaskForm):
     name = StringField(
         label="What is your name?",
         validators=[Optional()],
@@ -51,10 +55,10 @@ class VolunteerForm(FlaskForm):
         label="What brings you in?",
         validators=[InputRequired(message="Please choose a reason for visiting.")],
         choices=[
-            ("help", "Here to help"),
-            ("correctional", "I'm from the Center"),
-            ("service", "Service hours"),
-            ("other", "Other")
+            ("Help", "Here to help"),
+            ("Center", "I'm from the Center"),
+            ("Service", "Service hours"),
+            ("Other", "Other")
         ]
     )
     email = EmailField(
@@ -69,6 +73,18 @@ class VolunteerForm(FlaskForm):
     )
     submit = SubmitField(
         label="Done"
+    )
+
+
+class VolunteerSignOutForm(FlaskForm):
+    names = SelectMultipleField(
+        label="Current Volunteers",
+        choices=[],
+        option_widget=CheckboxInput(),
+        widget=ListWidget(prefix_label=False)  # type: ignore
+    )
+    submit = SubmitField(
+        label="Sign out"
     )
 
 

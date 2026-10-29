@@ -1,0 +1,41 @@
+{% extends "_base.html" %}
+
+{% block title %}Today's Data{% endblock %}
+
+{% block content %}
+    <main class="w-4xl flex flex-col bg-gray-50 rounded-xl p-5 gap-5 border-2 border-gray-100">
+        <!-- title -->
+        <div class="text-gray-700 text-4xl font-semibold">
+            Today's Data
+        </div>
+        <ul class="block text-2xl text-gray-700 font-medium font-mono truncate gap-1 max-h-143 overflow-y-auto">
+            <li>
+                Sign everyone out before counting hours and such. will fix.
+            </li>
+            {% for key, value in data.items() %}
+            <li>
+                {{ key }}: {{ value }}
+            </li>
+            {% endfor %}
+        </ul>
+        <!-- back to main -->
+        <a href="{{ url_for('admin_panel') }}" class="w-full font-semibold self-start rounded-lg text-orange-600 text-center p-3 border-2 border-orange-600 text-xl hover:bg-gray-200">
+            Back
+        </a>
+    </main>
+{% endblock %}
+
+{% block script %}
+    <script>
+        setTimeout(() =>
+        {
+            const alertBox = document.getElementById('alert');
+            if (alertBox)
+            {
+                alertBox.style.transition = 'opacity 1s ease';
+                alertBox.style.opacity = '0';
+                setTimeout(() => alertBox.remove(), 1000);
+            }
+        }, 6000);
+    </script>
+{% endblock %}

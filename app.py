@@ -21,7 +21,7 @@ from flask import Flask, render_template, redirect, url_for, flash, request
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 
 from user import User
-from forms import VisitorForm, VolunteerSignInForm, AdminLogInForm, VolunteerSignOutForm
+from forms import VisitorForm, VolunteerSignInForm, AdminLogInForm, VolunteerSignOutForm, VolunteerAddForm
 
 
 # ------------------ constants -----------------------------------------------------------------------------------------
@@ -210,7 +210,14 @@ def volunteer_form():
         # good submission
         with get_db("w") as (con, cur):
             statement = f"INSERT INTO volunteer_log (datetime, name, reason, email, note, hours) VALUES (?, ?, ?, ?, ?, ?)"
-            parameters = (timestamp, form.name.data.strip(), form.reason.data, form.email.data, form.note.data, 0.0)
+            parameters = (
+                timestamp,
+                form.name.data.strip(),
+                form.reason.data,
+                form.email.data.strip() if form.email.data.strip() else None,
+                form.note.data.strip() if form.note.data.strip() else None,
+                0.0
+            )
             cur.execute(statement, parameters)
 
             flash(f"Hi, {form.name.data}! Remember to sign out before leaving.")
@@ -288,6 +295,87 @@ def admin():
 def admin_panel():
     # GET
     return render_template("admin_panel.html")
+
+
+# view today's data   -- please fix this shit my god
+@app.get("/admin/view_data")
+@login_required
+def view_data():
+    # data
+    visitors = get_today_visitors()
+    vol_names, vol_hours = get_today_volunteers()
+
+    num_visitors = len(visitors)
+    num_repairs = 0
+    for person in visitors:
+        if person["reason"] == "Repair":
+            num_repairs += 1
+
+    num_volunteers = len(vol_names)
+    volunteer_hours = round(sum(vol_hours), 2)
+
+    data = {
+        "Visitors today": num_visitors,
+        "Visitor repairs": num_repairs,
+        "Volunteers today": num_volunteers,
+        "Volunteer repairs": volunteer_hours
+    }
+
+    # GET
+    return render_template("view_data.html", data=data)
+
+
+# add regular volunteer form
+@app.route("/admin/volunteer/add", methods=["GET", "POST"])
+@login_required
+def volunteer_add():
+    # form
+    form = VolunteerAddForm()
+
+    # data
+    volunteer_numbers, names = get_volunteers()
+    volunteer_pairs = []
+
+    if len(volunteer_numbers) == 0:
+        volunteer_pairs.append("No saved volunteers.")
+
+    for i in range(len(volunteer_numbers)):
+        # index 0 has numbers, index 1 has names
+        try:
+            # try to slice out name with last initial: Johnny A
+            space = names[i].index(" ")
+            abbr_name = names[i][:space + 2]
+
+            volunteer_pairs.append(f"{volunteer_numbers[i]} - {abbr_name}")
+        except ValueError:
+            volunteer_pairs.append(f"{volunteer_numbers[i]} - {names[i]}")
+
+    # POST
+    if form.validate_on_submit():
+        if form.number.data in volunteer_numbers:
+            flash("Someone is already using that number, pick another one.")
+            return render_template("volunteer_add.html", form=form, volunteer_pairs=sorted(volunteer_pairs))
+
+        if form.name.data in names:
+            flash(f"{form.name.data}, you already have a number.")
+            return render_template("volunteer_add.html", form=form, volunteer_pairs=sorted(volunteer_pairs))
+
+        with get_db("w") as (con, cur):
+            statement = f"INSERT INTO volunteers (volunteer_number, name, reason, email, phone, note) VALUES (?, ?, ?, ?, ?, ?)"
+            parameters = (
+                form.number.data,
+                form.name.data.strip(),
+                form.reason.data,
+                form.email.data.strip() if form.email.data.strip() else None,
+                form.phone.data.strip() if form.phone.data.strip() else None,
+                form.note.data.strip() if form.note.data.strip() else None
+            )
+            cur.execute(statement, parameters)
+            flash(f"Volunteer number {form.number.data} has been assigned to {form.name.data}.")
+            return redirect(url_for("admin_panel"))
+
+    # GET
+    return render_template("volunteer_add.html", form=form, volunteer_pairs=sorted(volunteer_pairs))
 
 
 # ------------------ helper functions ----------------------------------------------------------------------------------
@@ -473,6 +561,23 @@ def get_today_volunteers():
 
     # lists are reversed so most recent entries come first in case there are two valid sessions on the same day
     return list(reversed(names)), list(reversed(hours))
+
+
+# get today's visitors
+def get_today_visitors():
+    with get_db() as (con, cur):
+        query = "SELECT name, reason FROM visitor_log WHERE date (datetime) = date ('now', 'localtime');"
+        cur.execute(query)
+
+        visitors = []
+
+        for row in cur.fetchall():
+            visitors.append({
+                "name": row["name"],
+                "reason": row["reason"]
+            })
+
+    return visitors
 
 
 # generate list for sign out page

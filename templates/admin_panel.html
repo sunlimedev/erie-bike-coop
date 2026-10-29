@@ -8,9 +8,17 @@
         <div class="text-gray-700 text-4xl font-semibold">
             Admin Panel
         </div>
+        <!-- alert -->
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <div id="alert" class="w-full p-5 text-2xl rounded-lg text-green-600 border-2 border-green-600 bg-green-200">
+            {{ messages[-1] }}
+        </div>
+        {% endif %}
+        {% endwith %}
         <div class="grid grid-cols-2 gap-5">
             <!-- daily stats -->
-            <a href="{{ url_for('admin_panel') }}" class="block text-gray-50 text-4xl font-semibold rounded-lg p-8 bg-orange-600 text-center hover:bg-orange-700">
+            <a href="{{ url_for('view_data') }}" class="block text-gray-50 text-4xl font-semibold rounded-lg p-8 bg-orange-600 text-center hover:bg-orange-700">
                 View data
             </a>
             <!-- edit current data -->
@@ -18,7 +26,7 @@
                 Edit data
             </a>
             <!-- add regular volunteer -->
-            <a href="{{ url_for('admin_panel') }}" class="block text-gray-50 text-4xl font-semibold rounded-lg p-8 bg-orange-600 text-center hover:bg-orange-700">
+            <a href="{{ url_for('volunteer_add') }}" class="block text-gray-50 text-4xl font-semibold rounded-lg p-8 bg-orange-600 text-center hover:bg-orange-700">
                 Add volunteer
             </a>
             <!-- backup data -->

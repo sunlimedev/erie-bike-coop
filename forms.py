@@ -1,13 +1,19 @@
-# Import file
+# Application Web Forms File
+
+
+# ------------------ imports -------------------------------------------------------------------------------------------
 
 
 from flask_wtf import FlaskForm
-from wtforms import TelField
-from wtforms.validators import InputRequired, Optional, NumberRange, Regexp
 from wtforms.widgets.core import CheckboxInput, ListWidget
-from wtforms.fields import StringField, EmailField, RadioField, SubmitField, IntegerField, PasswordField, SelectMultipleField
+from wtforms.validators import InputRequired, Optional, NumberRange, Regexp
+from wtforms.fields import StringField, EmailField, RadioField, SubmitField, IntegerField, PasswordField, SelectMultipleField, TelField
 
 
+# ------------------ forms ---------------------------------------------------------------------------------------------
+
+
+# for visitor_form.html
 class VisitorForm(FlaskForm):
     name = StringField(
         label="What is your name?",
@@ -41,6 +47,7 @@ class VisitorForm(FlaskForm):
     )
 
 
+# for volunteer_form.html
 class VolunteerSignInForm(FlaskForm):
     name = StringField(
         label="What is your name?",
@@ -77,6 +84,7 @@ class VolunteerSignInForm(FlaskForm):
     )
 
 
+# for volunteer_sign_out.html
 class VolunteerSignOutForm(FlaskForm):
     names = SelectMultipleField(
         label="Current Volunteers",
@@ -89,6 +97,7 @@ class VolunteerSignOutForm(FlaskForm):
     )
 
 
+# for admin.html
 class AdminLogInForm(FlaskForm):
     password = PasswordField(
         label="Admin Password",
@@ -100,6 +109,7 @@ class AdminLogInForm(FlaskForm):
     )
 
 
+# for volunteer_add.html
 class VolunteerAddForm(FlaskForm):
     number = IntegerField(
         label="Choose a three-digit volunteer number:",

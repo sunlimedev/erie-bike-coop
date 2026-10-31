@@ -182,3 +182,33 @@ Remove the unused default
 ```
 sudo rm -rf /etc/nginx/sites-available/default
 ```
+
+### Configure Auditor Service -- `auditor.py`
+Create the `systemd` service
+```
+sudo nano /etc/systemd/system/auditor.service
+```
+```
+[Unit]
+Description=Log Auditor Script Runner
+After=network.target
+
+[Service]
+Type=simple
+User=user
+Group=user
+WorkingDirectory=/home/user
+Environment="PATH=/home/user/venv/bin"
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/home/user/venv/bin/python auditor.py
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
+```
+Start the service now and on boot
+```
+sudo systemctl daemon-reload
+sudo systemctl enable --now auditor.service
+```

@@ -29,3 +29,9 @@ DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%S"
 SMTP_KEY = getenv("SMTP_KEY", None)
 SENDER = getenv("SENDER", None)
 RECIPIENT = getenv("RECIPIENT", None)
+
+# auditor service settings
+WED_CLOSE = 16
+THU_CLOSE = 20
+SAT_CLOSE = 14
+FALLBACK = 22

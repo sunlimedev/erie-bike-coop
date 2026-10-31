@@ -229,3 +229,31 @@ def get_sign_out_list():
             })
 
     return volunteers
+
+
+# sign out all volunteers for today
+def sign_out_all():
+    with get_db("w") as (con, cur):
+        query = "SELECT id, datetime, hours FROM volunteer_log WHERE date (datetime) = date ('now', 'localtime');"
+        cur.execute(query)
+
+        volunteers = []
+
+        for row in cur.fetchall():
+            if row["hours"] != 0:
+                continue
+
+            now = datetime.now()
+            duration = now - datetime.strptime(row["datetime"], DATETIME_FORMAT)
+            new_hours = round(duration.total_seconds() / 3600, 2)
+
+            volunteers.append({
+                "id": row["id"],
+                "hours": new_hours
+            })
+
+            for person in volunteers:
+                statement = "UPDATE volunteer_log SET hours = ? WHERE id = ?"
+                parameters = (new_hours, person["id"])
+
+                cur.execute(statement, parameters)

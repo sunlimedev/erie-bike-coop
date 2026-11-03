@@ -7,7 +7,8 @@ Automating some work and data collection so people can do what they're best at.
 - Create `venv`
 - Updated `pip` to 26.2.2
 - Installed `flask`, `flask-login`, `flask-wtf`, `python-dotenv`, `gunicorn`
-- Config `nginx` + `gunicorn`
+- Configure `nginx` + `gunicorn`
+- Configure `auditor.py`
 
 ### .env
 ```commandline
@@ -20,10 +21,10 @@ ADMIN_PASSWORD=
 
 ### Configure Web Server -- `nginx` + `gunicorn`
 Create the `gunicorn` UNIX socket
-```
+```commandline
 sudo nano /etc/systemd/system/gunicorn.socket
 ```
-```
+```unit file (systemd)
 [Unit]
 Description=gunicorn Socket
 
@@ -37,10 +38,10 @@ SocketMode=0660
 WantedBy=sockets.target
 ```
 Create the `systemd` service
-```
+```commandline
 sudo nano /etc/systemd/system/gunicorn.service
 ```
-```
+```unit file (systemd)
 [Unit]
 Description=Gunicorn WSGI Runner
 Requires=gunicorn.socket
@@ -63,19 +64,19 @@ PrivateTmp=true
 WantedBy=multi-user.target
 ```
 Start the service now and on boot
-```
+```commandline
 sudo systemctl daemon-reload
 sudo systemctl enable --now gunicorn.socket
 sudo systemctl enable --now gunicorn.service
 ```
 Verify socket setup
-```
+```commandline
 ls -la /run/gunicorn.sock
 
 # Expected:
 srw-rw---- 1 user www-data 0 ... /run/gunicorn.sock
 ```
-```
+```commandline
 sudo -u www-data curl --unix-socket /run/gunicorn.sock http://localhost/
 
 # Expected: 
@@ -86,7 +87,7 @@ sudo -u www-data curl --unix-socket /run/gunicorn.sock http://localhost/
 ...
 ```
 Create self-signed certificate
-```
+```commandline
 sudo mkdir -p /etc/nginx/ssl
 sudo openssl req -x509 -nodes -newkey rsa:4096 \
   -keyout /etc/nginx/ssl/key.pem \
@@ -95,15 +96,15 @@ sudo openssl req -x509 -nodes -newkey rsa:4096 \
   -subj "/CN=localhost"
 ```
 Secure certificate and key
-```
+```commandline
 sudo chmod 600 /etc/nginx/ssl/key.pem
 sudo chown root:root /etc/nginx/ssl/*.pem
 ```
 Create `nginx` configuration for `flask`
-```
+```commandline
 sudo nano /etc/nginx/sites-available/flask-app
 ```
-```
+```nginx
 server {
     listen 80 default_server;
     listen [::]:80 default_server;
@@ -141,12 +142,12 @@ server {
 }
 ```
 Enable the custom configuration and disable the default one
-```
+```commandline
 sudo ln -s /etc/nginx/sites-available/flask-app /etc/nginx/sites-enabled/flask-app
 sudo rm /etc/nginx/sites-enabled/default
 ```
 Verify the custom configuration is valid
-```
+```commandline
 sudo nginx -t
 
 # Expected:
@@ -154,11 +155,11 @@ nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
 nginx: configuration file /etc/nginx/nginx.conf test is successful
 ```
 Reboot
-```
+```commandline
 sudo reboot
 ```
 Verify the security headers and proxying are correct
-```
+```commandline
 curl -k -I https://localhost/
 
 # Expected:
@@ -179,16 +180,16 @@ Referrer-Policy: same-origin
 Feature-Policy: geolocation 'self'; vibrate 'none'
 ```
 Remove the unused default
-```
+```commandline
 sudo rm -rf /etc/nginx/sites-available/default
 ```
 
 ### Configure Auditor Service -- `auditor.py`
 Create the `systemd` service
-```
+```commandline
 sudo nano /etc/systemd/system/auditor.service
 ```
-```
+```unit file (systemd)
 [Unit]
 Description=Log Auditor Script Runner
 After=network.target
@@ -208,7 +209,7 @@ RestartSec=3
 WantedBy=multi-user.target
 ```
 Start the service now and on boot
-```
+```commandline
 sudo systemctl daemon-reload
 sudo systemctl enable --now auditor.service
 ```

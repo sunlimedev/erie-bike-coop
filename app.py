@@ -16,7 +16,7 @@ from flask_login import LoginManager, login_user, login_required, logout_user, c
 
 from user import User
 from config import DEBUG_HOST, DEBUG_PORT, DATETIME_FORMAT, FLASK_SECRET_KEY
-from database import get_db, get_volunteers, get_today_volunteers, get_today_visitors, get_sign_out_list
+from database import get_db, get_db_readonly, get_saved_volunteers, get_today_volunteers, get_today_visitors, get_sign_out_list
 from forms import VisitorForm, VolunteerSignInForm, AdminLogInForm, VolunteerSignOutForm, VolunteerAddForm
 
 
@@ -27,7 +27,7 @@ from forms import VisitorForm, VolunteerSignInForm, AdminLogInForm, VolunteerSig
 app = Flask(__name__)
 
 # configure secret key for forms
-app.config['SECRET_KEY'] = FLASK_SECRET_KEY
+app.config["SECRET_KEY"] = FLASK_SECRET_KEY
 
 # not doing anything at the moment
 login_manager = LoginManager(app)
@@ -36,8 +36,8 @@ login_manager = LoginManager(app)
 login_manager.login_view = "admin"
 
 # custom login manager error
-login_manager.login_message = 'Please log in.'
-login_manager.login_message_category = 'error'
+login_manager.login_message = "Please log in."
+login_manager.login_message_category = "error"
 
 
 # ------------------ user routes ---------------------------------------------------------------------------------------
@@ -67,7 +67,7 @@ def visitor_form():
         timestamp = now.strftime(DATETIME_FORMAT)
 
         # insert the new data into the database and insert None for empty strings
-        with get_db("w") as (con, cur):
+        with get_db() as (con, cur):
             statement = f"""
                 INSERT INTO visitor_log (datetime, name, reason, email, note)
                 VALUES (?, ?, ?, ?, ?)
@@ -103,7 +103,7 @@ def volunteer_form():
     form = VolunteerSignInForm()
 
     # data
-    volunteer_numbers, names = get_volunteers()
+    volunteer_numbers, names = get_saved_volunteers()
     volunteer_pairs = []
 
     if len(volunteer_numbers) == 0:
@@ -142,7 +142,7 @@ def volunteer_form():
                 return render_template("volunteer_form.html", form=form, volunteer_pairs=sorted(volunteer_pairs))
             # valid volunteer number
             else:
-                with get_db("w") as (con, cur):
+                with get_db() as (con, cur):
                     query = f"SELECT name, reason, email FROM volunteers WHERE volunteer_number = ?"
                     cur.execute(query, [form.number.data])
                     data = cur.fetchone()
@@ -184,7 +184,7 @@ def volunteer_form():
                 return render_template("volunteer_form.html", form=form, volunteer_pairs=sorted(volunteer_pairs))
 
         # good submission
-        with get_db("w") as (con, cur):
+        with get_db() as (con, cur):
             statement = f"INSERT INTO volunteer_log (datetime, name, reason, email, note, hours) VALUES (?, ?, ?, ?, ?, ?)"
             parameters = (
                 timestamp,
@@ -224,7 +224,7 @@ def volunteer_sign_out():
             flash("No one was signed out.")
             return redirect(url_for("greeter"))
 
-        with get_db("w") as (con, cur):
+        with get_db() as (con, cur):
             for person in volunteers:
                 if person["name"] in selected_names:
                     statement = "UPDATE volunteer_log SET hours = ? WHERE id = ?"
@@ -250,7 +250,7 @@ def admin():
 
     # POST
     if form.validate_on_submit():
-        with get_db() as (con, cur):
+        with get_db_readonly() as (con, cur):
             cur.execute("SELECT password FROM users WHERE id = 1")
             row = cur.fetchone()
 
@@ -309,7 +309,7 @@ def volunteer_add():
     form = VolunteerAddForm()
 
     # data
-    volunteer_numbers, names = get_volunteers()
+    volunteer_numbers, names = get_saved_volunteers()
     volunteer_pairs = []
 
     if len(volunteer_numbers) == 0:
@@ -336,7 +336,7 @@ def volunteer_add():
             flash(f"{form.name.data}, you already have a number.")
             return render_template("volunteer_add.html", form=form, volunteer_pairs=sorted(volunteer_pairs))
 
-        with get_db("w") as (con, cur):
+        with get_db() as (con, cur):
             statement = f"INSERT INTO volunteers (volunteer_number, name, reason, email, phone, note) VALUES (?, ?, ?, ?, ?, ?)"
             parameters = (
                 form.number.data,
@@ -361,7 +361,7 @@ def volunteer_add():
 @login_manager.user_loader
 def load_user(user_id: int = 1):
     # pull admin user from database
-    with get_db() as (con, cur):
+    with get_db_readonly() as (con, cur):
         cur.execute("SELECT username, password FROM users WHERE id = ?", [user_id])
         user = cur.fetchone()
 

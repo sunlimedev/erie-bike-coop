@@ -11,21 +11,21 @@ from datetime import datetime
 from contextlib import contextmanager
 from werkzeug.security import generate_password_hash
 
-from config import ADMIN_PASSWORD, DATABASE_FILE, DATETIME_FORMAT
+from config import ADMIN_PASSWORD, DATABASE_FILE, DATETIME_FORMAT, DATE_FORMAT
 
 
 # ------------------ functions -----------------------------------------------------------------------------------------
 
 
-# mode string exists to use BEGIN IMMEDIATE transaction mode for immediate write locking when writing
+# provide a database connection to caller in write configuration
 @contextmanager
-def get_db(mode: str = "r"):
+def get_db():
     # create file if necessary with admin user
     if not DATABASE_FILE.is_file():
         create_db(DATABASE_FILE)
 
-    # connect to database without locking file
-    con = sqlite3.connect(DATABASE_FILE, isolation_level=None)
+    # connect to database and lock file
+    con = sqlite3.connect(DATABASE_FILE, isolation_level="IMMEDIATE")
     con.row_factory = sqlite3.Row
     cur = con.cursor()
 
@@ -38,18 +38,43 @@ def get_db(mode: str = "r"):
     for pragma in pragmas:
         cur.execute(pragma)
 
-    # lock file if writing
-    if mode == "w":
-        cur.execute("BEGIN IMMEDIATE")
+    # yield the database connection to the caller and commit changes
+    try:
+        yield con, cur
+        con.commit()
+    except Exception:
+        con.rollback()
+        raise
+    finally:
+        cur.close()
+        con.close()
+
+
+# provide a database connection to caller in read configuration
+@contextmanager
+def get_db_readonly():
+    # create file if necessary with admin user
+    if not DATABASE_FILE.is_file():
+        create_db(DATABASE_FILE)
+
+    # connect to database without locking file
+    con = sqlite3.connect(DATABASE_FILE, isolation_level="DEFERRED")
+    con.row_factory = sqlite3.Row
+    cur = con.cursor()
+
+    # execute pragmas for better concurrency
+    pragmas = [
+        "PRAGMA synchronous = NORMAL;",
+        "PRAGMA busy_timeout = 5000;",
+        "PRAGMA cache_size = -20000;"
+    ]
+    for pragma in pragmas:
+        cur.execute(pragma)
 
     # yield the database connection to the caller
     try:
         yield con, cur
-        if mode == "w":
-            con.commit()
     except Exception:
-        if mode == "w":
-            con.rollback()
         raise
     finally:
         cur.close()
@@ -138,29 +163,13 @@ def create_db(db: Path):
     con.close()
 
 
-# get table names in database
-def get_db_tables():
-    # create table list
-    tables = []
-
-    with get_db() as (con, cur):
-        cur.execute("SELECT * FROM pragma_table_list();")
-
-        # extract the custom tables
-        for row in cur.fetchall():
-            if not row["name"].startswith("sqlite_"):
-                tables.append(row["name"])
-
-    return tables
-
-
 # get regular volunteers
-def get_volunteers():
+def get_saved_volunteers():
     # create lists
     volunteer_numbers = []
     names = []
 
-    with get_db() as (con, cur):
+    with get_db_readonly() as (con, cur):
         cur.execute("SELECT volunteer_number, name FROM volunteers;")
 
         # extract the data
@@ -173,7 +182,7 @@ def get_volunteers():
 
 # get today's volunteers with hours
 def get_today_volunteers():
-    with get_db() as (con, cur):
+    with get_db_readonly() as (con, cur):
         query = "SELECT name, hours FROM volunteer_log WHERE date (datetime) = date ('now', 'localtime');"
         cur.execute(query)
 
@@ -190,7 +199,7 @@ def get_today_volunteers():
 
 # get today's visitors
 def get_today_visitors():
-    with get_db() as (con, cur):
+    with get_db_readonly() as (con, cur):
         query = "SELECT name, reason FROM visitor_log WHERE date (datetime) = date ('now', 'localtime');"
         cur.execute(query)
 
@@ -207,7 +216,7 @@ def get_today_visitors():
 
 # generate list for sign out page
 def get_sign_out_list():
-    with get_db() as (con, cur):
+    with get_db_readonly() as (con, cur):
         query = "SELECT id, datetime, name, hours FROM volunteer_log WHERE date (datetime) = date ('now', 'localtime');"
         cur.execute(query)
 
@@ -233,7 +242,7 @@ def get_sign_out_list():
 
 # sign out all volunteers for today
 def sign_out_all():
-    with get_db("w") as (con, cur):
+    with get_db() as (con, cur):
         query = "SELECT id, datetime, hours FROM volunteer_log WHERE date (datetime) = date ('now', 'localtime');"
         cur.execute(query)
 
@@ -257,3 +266,93 @@ def sign_out_all():
             parameters = (new_hours, person["id"])
 
             cur.execute(statement, parameters)
+
+
+# pull visitor data from optional range, defaults to today's data only
+def get_visitors(dates: list[str] | None = None) -> list[dict[str, str | int | None]]:
+    """
+    This function gathers the visitor information from provided dates.
+
+    If there are no dates provided, only the data from today will be returned.
+
+    :param dates: Optionally, a list of dates, like "2026-10-31".
+    :return: A list of dictionaries containing visitor information.
+    """
+
+    # for function call without list of dates, add today
+    if not dates:
+        dates = []
+        now = datetime.now()
+        dates.append(now.strftime(DATE_FORMAT))
+
+    # pull all visitors from each day in dates list
+    with get_db_readonly() as (con, cur):
+        visitors = []
+
+        for date in dates:
+            # create correct format datetime strings for faster queries
+            start = datetime.strptime(date, DATE_FORMAT)
+            end = start.replace(hour=23, minute=59, second=59)
+
+            start_string = start.strftime(DATETIME_FORMAT)
+            end_string = end.strftime(DATETIME_FORMAT)
+
+            # query database
+            query = """
+                SELECT * 
+                FROM visitor_log 
+                WHERE datetime BETWEEN ? AND ?
+            """
+            parameters = (start_string, end_string)
+            cur.execute(query, parameters)
+
+            # convert sqlite3 row object to dictionary
+            for row in cur.fetchall():
+                visitors.append(dict(row))
+
+    return visitors
+
+
+# pull volunteer data from optional range, defaults to today's data only
+def get_volunteers(dates: list[str] | None = None) -> list[dict[str, str | int | float | None]]:
+    """
+    This function gathers the volunteer information from provided dates.
+
+    If there are no dates provided, only the data from only today will be returned.
+
+    :param dates: Optionally, a list of dates, like "2026-10-31".
+    :return: A list of dictionaries containing volunteer information.
+    """
+
+    # for function call without list of dates, add today
+    if not dates:
+        dates = []
+        now = datetime.now()
+        dates.append(now.strftime(DATE_FORMAT))
+
+    # pull all volunteers from each day in dates list
+    with get_db_readonly() as (con, cur):
+        volunteers = []
+
+        for date in dates:
+            # create correct format datetime strings for faster queries
+            start = datetime.strptime(date, DATE_FORMAT)
+            end = start.replace(hour=23, minute=59, second=59)
+
+            start_string = start.strftime(DATETIME_FORMAT)
+            end_string = end.strftime(DATETIME_FORMAT)
+
+            # query database
+            query = """
+                SELECT * 
+                FROM volunteer_log 
+                WHERE datetime BETWEEN ? AND ?
+            """
+            parameters = (start_string, end_string)
+            cur.execute(query, parameters)
+
+            # convert sqlite3 row object to dictionary
+            for row in cur.fetchall():
+                volunteers.append(dict(row))
+
+    return volunteers

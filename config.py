@@ -24,6 +24,7 @@ DEBUG_PORT = 8080
 DATABASE_FILE = Path("app.db")
 ADMIN_PASSWORD = getenv("ADMIN_PASSWORD", "bike")
 DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%S"
+DATE_FORMAT = "%Y-%m-%d"
 
 # email service settings
 SMTP_SERVER = "smtp.gmail.com"

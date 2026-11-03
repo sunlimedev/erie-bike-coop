@@ -26,6 +26,8 @@ ADMIN_PASSWORD = getenv("ADMIN_PASSWORD", "bike")
 DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%S"
 
 # email service settings
+SMTP_SERVER = "smtp.gmail.com"
+SMTP_PORT = 587
 SMTP_KEY = getenv("SMTP_KEY", None)
 SENDER = getenv("SENDER", None)
 RECIPIENT = getenv("RECIPIENT", None)

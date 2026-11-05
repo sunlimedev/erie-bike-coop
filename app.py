@@ -9,8 +9,10 @@
 
 
 from datetime import datetime
+
 from wtforms.validators import Optional
 from werkzeug.security import check_password_hash
+from werkzeug.middleware.proxy_fix import ProxyFix
 from flask import Flask, render_template, redirect, url_for, flash, request
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 
@@ -25,6 +27,9 @@ from forms import VisitorForm, VolunteerSignInForm, AdminLogInForm, VolunteerSig
 
 # flask app instance
 app = Flask(__name__)
+
+# allow nginx proxy to forward data correctly
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=0, x_port=0, x_prefix=0)
 
 # configure secret key for forms
 app.config["SECRET_KEY"] = FLASK_SECRET_KEY

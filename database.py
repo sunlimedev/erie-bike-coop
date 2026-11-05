@@ -263,7 +263,7 @@ def sign_out_all():
 
         for person in volunteers:
             statement = "UPDATE volunteer_log SET hours = ? WHERE id = ?"
-            parameters = (new_hours, person["id"])
+            parameters = (person["hours"], person["id"])
 
             cur.execute(statement, parameters)
 

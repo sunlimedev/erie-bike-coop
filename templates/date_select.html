@@ -1,0 +1,44 @@
+{% extends "_base.html" %}
+
+{% block title %}Date Select{% endblock %}
+
+{% block content %}
+    <form method="POST" class="w-4xl flex flex-col bg-gray-50 rounded-xl p-5 gap-5 border-2 border-gray-100">
+        <!-- csrf token -->
+        {{ form.hidden_tag() }}
+        <!-- validation error -->
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <div id="alert" class="w-full p-5 text-2xl rounded-lg text-red-600 border-2 border-red-600 bg-red-200">
+            {{ messages[-1] }}
+        </div>
+        {% endif %}
+        {% endwith %}
+        <!-- volunteers -->
+        <div class="flex flex-col {% if form.dates.choices | length > 7 %}h-130{% endif %} overflow-y-auto">
+            <div class="font-semibold text-gray-700 text-2xl pb-1">
+                Select dates with data to view:
+            </div>
+            <ul class="flex flex-col gap-3 text-xl text-gray-700">
+            {% for date in form.dates %}
+                <li>
+                    {{ date(class_="peer sr-only") }}
+                    {{ date.label(class_="flex flex-row justify-between block p-3 {% if form.dates.choices | length > 7 %}mr-5{% endif %} rounded-lg border-2 border-gray-400 bg-gray-100 rounded cursor-pointer hover:bg-orange-50 hover:border-orange-600 hover:text-orange-600 peer-checked:bg-orange-200 peer-checked:border-orange-600 peer-checked:text-orange-600 peer-checked:hover:bg-orange-200 peer-checked:hover:border-orange-600 peer-checked:hover:text-orange-600") }}
+                </li>
+            {% endfor %}
+            </ul>
+        </div>
+        <!-- cancel and submit -->
+        <div class="grid grid-cols-3 gap-3">
+            <a href="{{ url_for('admin_panel') }}" class="font-semibold rounded-lg text-orange-600 text-center p-3 border-2 border-orange-600 text-xl hover:bg-gray-200">
+                Cancel
+            </a>
+            <div>
+                {{ form.every(class_="w-full font-semibold rounded-lg p-3 bg-orange-600 border-2 border-orange-600 text-xl text-gray-50 hover:bg-orange-700 hover:border-orange-700") }}
+            </div>
+            <div>
+                {{ form.selected(class_="w-full font-semibold rounded-lg p-3 bg-orange-600 border-2 border-orange-600 text-xl text-gray-50 hover:bg-orange-700 hover:border-orange-700") }}
+            </div>
+        </div>
+    </form>
+{% endblock %}

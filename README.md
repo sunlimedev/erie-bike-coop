@@ -10,6 +10,11 @@ Automating some work and data collection so people can do what they're best at.
 - Configure `nginx` + `gunicorn`
 - Configure `auditor.py`
 
+### Generate `input.css`
+```commandline
+./tailwindcss -i ./static/css/input.css -o ./static/css/style.css --minify
+```
+
 ### .env
 ```commandline
 FLASK_SECRET_KEY=

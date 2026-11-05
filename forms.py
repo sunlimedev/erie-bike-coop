@@ -157,3 +157,19 @@ class VolunteerAddForm(FlaskForm):
     submit = SubmitField(
         label="Done"
     )
+
+
+# for date_select.html
+class DateSelectForm(FlaskForm):
+    dates = SelectMultipleField(
+        label="Dates",
+        choices=[],
+        option_widget=CheckboxInput(),
+        widget=ListWidget(prefix_label=False)  # type: ignore
+    )
+    every = SubmitField(
+        label="View all"
+    )
+    selected = SubmitField(
+        label="View selected"
+    )

@@ -1,25 +1,24 @@
 {% extends "_base.html" %}
 
-{% block title %}Today's Data{% endblock %}
+{% block title %}Viewing Data{% endblock %}
 
 {% block content %}
     <main class="w-4xl flex flex-col bg-gray-50 rounded-xl p-5 gap-5 border-2 border-gray-100">
         <!-- title -->
         <div class="text-gray-700 text-4xl font-semibold">
-            Today's Data
+            Recorded data
         </div>
+        {% for entry in data %}
         <ul class="block text-2xl text-gray-700 font-medium font-mono truncate gap-1 max-h-143 overflow-y-auto">
-            <li>
-                Sign everyone out before counting hours and such. will fix.
-            </li>
-            {% for key, value in data.items() %}
+            {% for key, value in entry.items() %}
             <li>
                 {{ key }}: {{ value }}
             </li>
             {% endfor %}
         </ul>
+        {% endfor %}
         <!-- back to main -->
-        <a href="{{ url_for('admin_panel') }}" class="w-full font-semibold self-start rounded-lg text-orange-600 text-center p-3 border-2 border-orange-600 text-xl hover:bg-gray-200">
+        <a href="{{ url_for('view_data') }}" class="w-full font-semibold self-start rounded-lg text-orange-600 text-center p-3 border-2 border-orange-600 text-xl hover:bg-gray-200">
             Back
         </a>
     </main>

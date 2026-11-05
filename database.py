@@ -356,3 +356,31 @@ def get_volunteers(dates: list[str] | None = None) -> list[dict[str, str | int |
                 volunteers.append(dict(row))
 
     return volunteers
+
+
+# pull strings of days with logs
+def get_dates_with_logs():
+    with get_db_readonly() as (con, cur):
+        dates = []
+
+        query = """
+            SELECT DISTINCT substr(datetime, 1, 10) 
+            AS date 
+            FROM volunteer_log;
+        """
+        cur.execute(query)
+
+        for row in cur.fetchall():
+            dates.append(row["date"])
+
+        query = """
+            SELECT DISTINCT substr(datetime, 1, 10) 
+            AS date 
+            FROM visitor_log;
+        """
+        cur.execute(query)
+
+        for row in cur.fetchall():
+            dates.append(row["date"])
+
+    return sorted(set(dates), reverse=True)

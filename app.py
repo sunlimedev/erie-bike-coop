@@ -18,9 +18,8 @@ from flask_login import LoginManager, login_user, login_required, logout_user, c
 
 from user import User
 from config import DEBUG_HOST, DEBUG_PORT, DATETIME_FORMAT, FLASK_SECRET_KEY
-from database import get_db, get_db_readonly, get_saved_volunteers, get_today_volunteers, get_today_visitors, get_sign_out_list
-from forms import VisitorForm, VolunteerSignInForm, AdminLogInForm, VolunteerSignOutForm, VolunteerAddForm
-
+from database import get_db, get_db_readonly, get_saved_volunteers, get_today_volunteers, get_visitors, get_sign_out_list, get_volunteers, get_dates_with_logs
+from forms import VisitorForm, VolunteerSignInForm, AdminLogInForm, VolunteerSignOutForm, VolunteerAddForm, DateSelectForm
 
 # ------------------ flask config --------------------------------------------------------------------------------------
 
@@ -278,32 +277,87 @@ def admin_panel():
     return render_template("admin_panel.html")
 
 
-# view today's data   -- please fix this shit my god
-@app.get("/admin/view_data")
+# daily recap of data   -- please fix this shit my god
+@app.get("/admin/daily_recap")
 @login_required
-def view_data():
+def daily_recap():
     # data
-    visitors = get_today_visitors()
-    vol_names, vol_hours = get_today_volunteers()
-
+    visitors = get_visitors()
     num_visitors = len(visitors)
     num_repairs = 0
+
     for person in visitors:
         if person["reason"] == "Repair":
             num_repairs += 1
 
-    num_volunteers = len(vol_names)
-    volunteer_hours = round(sum(vol_hours), 2)
+    volunteers = get_volunteers()
+    num_volunteers = len(volunteers)
+    volunteer_hours = 0
+    remaining = 0
+
+    for person in volunteers:
+        volunteer_hours += person["hours"]
+        if person["hours"] == 0:
+            remaining += 1
 
     data = {
         "Visitors today": num_visitors,
         "Visitor repairs": num_repairs,
         "Volunteers today": num_volunteers,
-        "Volunteer hours": volunteer_hours
+        "Volunteer hours": round(volunteer_hours, 2)
     }
 
     # GET
-    return render_template("view_data.html", data=data)
+    return render_template("daily_recap.html", data=data, remaining=remaining)
+
+
+# view old data
+@app.route("/admin/view_data", methods=["GET", "POST"])
+@login_required
+def view_data():
+    # form
+    form = DateSelectForm()
+
+    # data
+    dates = get_dates_with_logs()
+    form.dates.choices = [(date, date) for date in dates]
+
+    # POST
+    if form.validate_on_submit():
+        # overwrite dates if we don't want all
+        if form.selected.data:
+            dates = form.dates.data
+
+        data = []
+
+        for date in dates:
+            visitors = get_visitors([date])
+            num_visitors = len(visitors)
+            num_repairs = 0
+
+            for person in visitors:
+                if person["reason"] == "Repair":
+                    num_repairs += 1
+
+            volunteers = get_volunteers([date])
+            num_volunteers = len(volunteers)
+            volunteer_hours = 0
+
+            for person in volunteers:
+                volunteer_hours += person["hours"]
+
+            data.append({
+                "Date": date,
+                "Visitors": num_visitors,
+                "Visitor repairs": num_repairs,
+                "Volunteers": num_volunteers,
+                "Volunteer hours": round(volunteer_hours, 2)
+            })
+
+        return render_template("view_data.html", data=data)
+
+    # GET
+    return render_template("date_select.html", form=form)
 
 
 # add regular volunteer form

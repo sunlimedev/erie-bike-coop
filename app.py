@@ -8,18 +8,22 @@
 # ------------------ imports -------------------------------------------------------------------------------------------
 
 
-from datetime import datetime
+import fcntl
+import socket
+import struct
 
+from datetime import datetime
 from wtforms.validators import Optional
 from werkzeug.security import check_password_hash
 from werkzeug.middleware.proxy_fix import ProxyFix
-from flask import Flask, render_template, redirect, url_for, flash, request
+from flask import Flask, render_template, redirect, url_for, flash, request, jsonify
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 
 from user import User
 from config import DEBUG_HOST, DEBUG_PORT, DATETIME_FORMAT, FLASK_SECRET_KEY
 from database import get_db, get_db_readonly, get_saved_volunteers, get_today_volunteers, get_visitors, get_sign_out_list, get_volunteers, get_dates_with_logs
 from forms import VisitorForm, VolunteerSignInForm, AdminLogInForm, VolunteerSignOutForm, VolunteerAddForm, DateSelectForm
+
 
 # ------------------ flask config --------------------------------------------------------------------------------------
 
@@ -411,6 +415,33 @@ def volunteer_add():
 
     # GET
     return render_template("volunteer_add.html", form=form, volunteer_pairs=sorted(volunteer_pairs))
+
+
+# ------------------ API routes ----------------------------------------------------------------------------------------
+
+
+# return the local network address of the server
+@app.get("/api/addr")
+def return_addr():
+    # debian trixie ethernet default name
+    interface = "eno1"
+
+    # create a socket so OS must provide file descriptor
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
+    # kernel sys call to get network address
+    address = socket.inet_ntoa(
+        fcntl.ioctl(
+            s.fileno(),
+            0x8915,
+            struct.pack('256s', interface[:15].encode('utf-8')))
+        [20:24])
+
+    # clean up socket
+    s.close()
+
+    reply = {"address": address}
+    return jsonify(reply), 200
 
 
 # ------------------ helper functions ----------------------------------------------------------------------------------

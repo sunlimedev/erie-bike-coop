@@ -98,8 +98,8 @@ def visitor_form():
 
 
 # volunteer sign in/out select page
-@app.get("/volunteer")
-def volunteer():
+@app.get("/volunteer/options")
+def volunteer_options():
     # GET
     return render_template("volunteer.html")
 
@@ -221,7 +221,7 @@ def volunteer_sign_out():
     volunteers = get_sign_out_list()
     if len(volunteers) == 0:
         flash("There is no one to sign out.")
-        return redirect(url_for("volunteer"))
+        return redirect(url_for("volunteer_options"))
     form.names.choices = [(person["name"], person["name"]) for person in volunteers]
 
     # POST

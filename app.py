@@ -21,7 +21,7 @@ from flask_login import LoginManager, login_user, login_required, logout_user, c
 
 from user import User
 from config import DEBUG_HOST, DEBUG_PORT, DATETIME_FORMAT, FLASK_SECRET_KEY
-from database import get_db, get_db_readonly, get_saved_volunteers, get_today_volunteers, get_visitors, get_sign_out_list, get_volunteers, get_dates_with_logs
+from database import get_db, get_db_readonly, get_saved_volunteers, get_visitors, get_sign_out_list, get_volunteers, get_dates_with_logs
 from forms import VisitorForm, VolunteerSignInForm, AdminLogInForm, VolunteerSignOutForm, VolunteerAddForm, DateSelectForm
 
 
@@ -111,7 +111,11 @@ def volunteer_form():
     form = VolunteerSignInForm()
 
     # data
-    volunteer_numbers, names = get_saved_volunteers()
+    volunteers = get_saved_volunteers()
+
+    volunteer_numbers = [volunteer["volunteer_number"] for volunteer in volunteers]
+    names = [volunteer["name"] for volunteer in volunteers]
+
     volunteer_pairs = []
 
     if len(volunteer_numbers) == 0:
@@ -156,7 +160,10 @@ def volunteer_form():
                     data = cur.fetchone()
 
                     # duplicate prevention
-                    today_names, today_hours = get_today_volunteers()
+                    volunteers = get_volunteers()
+
+                    today_names = list(reversed([volunteer["name"] for volunteer in volunteers]))
+                    today_hours = list(reversed([volunteer["hours"] for volunteer in volunteers]))
 
                     if data["name"] in today_names:
                         index = today_names.index(data["name"])
@@ -179,14 +186,13 @@ def volunteer_form():
             return render_template("volunteer_form.html", form=form, volunteer_pairs=sorted(volunteer_pairs))
 
         # duplicate prevention
-        today_names, today_hours = get_today_volunteers()
+        volunteers = get_volunteers()
 
-        print(form.name.data)
-        print(today_names)
+        today_names = list(reversed([volunteer["name"] for volunteer in volunteers]))
+        today_hours = list(reversed([volunteer["hours"] for volunteer in volunteers]))
 
         if form.name.data in today_names:
             index = today_names.index(form.name.data)
-            print(today_hours[index])
             if today_hours[index] == 0:
                 flash(f"You are already signed in, {form.name.data}.")
                 return render_template("volunteer_form.html", form=form, volunteer_pairs=sorted(volunteer_pairs))
@@ -372,7 +378,11 @@ def volunteer_add():
     form = VolunteerAddForm()
 
     # data
-    volunteer_numbers, names = get_saved_volunteers()
+    volunteers = get_saved_volunteers()
+
+    volunteer_numbers = [volunteer["volunteer_number"] for volunteer in volunteers]
+    names = [volunteer["name"] for volunteer in volunteers]
+
     volunteer_pairs = []
 
     if len(volunteer_numbers) == 0:

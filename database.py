@@ -163,111 +163,6 @@ def create_db(db: Path):
     con.close()
 
 
-# get regular volunteers
-def get_saved_volunteers():
-    # create lists
-    volunteer_numbers = []
-    names = []
-
-    with get_db_readonly() as (con, cur):
-        cur.execute("SELECT volunteer_number, name FROM volunteers;")
-
-        # extract the data
-        for row in cur.fetchall():
-            volunteer_numbers.append(row["volunteer_number"])
-            names.append(row["name"])
-
-    return volunteer_numbers, names
-
-
-# get today's volunteers with hours
-def get_today_volunteers():
-    with get_db_readonly() as (con, cur):
-        query = "SELECT name, hours FROM volunteer_log WHERE date (datetime) = date ('now', 'localtime');"
-        cur.execute(query)
-
-        names = []
-        hours = []
-
-        for row in cur.fetchall():
-            names.append(row["name"])
-            hours.append(row["hours"])
-
-    # lists are reversed so most recent entries come first in case there are two valid sessions on the same day
-    return list(reversed(names)), list(reversed(hours))
-
-
-# get today's visitors
-def get_today_visitors():
-    with get_db_readonly() as (con, cur):
-        query = "SELECT name, reason FROM visitor_log WHERE date (datetime) = date ('now', 'localtime');"
-        cur.execute(query)
-
-        visitors = []
-
-        for row in cur.fetchall():
-            visitors.append({
-                "name": row["name"],
-                "reason": row["reason"]
-            })
-
-    return visitors
-
-
-# generate list for sign out page
-def get_sign_out_list():
-    with get_db_readonly() as (con, cur):
-        query = "SELECT id, datetime, name, hours FROM volunteer_log WHERE date (datetime) = date ('now', 'localtime');"
-        cur.execute(query)
-
-        volunteers = []
-
-        for row in cur.fetchall():
-            if row["hours"] != 0:
-                continue
-
-            start = datetime.strptime(row["datetime"], DATETIME_FORMAT)
-            end = datetime.now()
-            duration = end - start
-            hours = round(duration.total_seconds() / 3600, 2)
-
-            volunteers.append({
-                "id": row["id"],
-                "name": row["name"],
-                "hours": hours
-            })
-
-    return volunteers
-
-
-# sign out all volunteers for today
-def sign_out_all():
-    with get_db() as (con, cur):
-        query = "SELECT id, datetime, hours FROM volunteer_log WHERE date (datetime) = date ('now', 'localtime');"
-        cur.execute(query)
-
-        volunteers = []
-
-        for row in cur.fetchall():
-            if row["hours"] != 0:
-                continue
-
-            now = datetime.now()
-            duration = now - datetime.strptime(row["datetime"], DATETIME_FORMAT)
-            new_hours = round(duration.total_seconds() / 3600, 2)
-
-            volunteers.append({
-                "id": row["id"],
-                "hours": new_hours
-            })
-
-        for person in volunteers:
-            statement = "UPDATE volunteer_log SET hours = ? WHERE id = ?"
-            parameters = (person["hours"], person["id"])
-
-            cur.execute(statement, parameters)
-
-
 # pull visitor data from optional range, defaults to today's data only
 def get_visitors(dates: list[str] | None = None) -> list[dict[str, str | int | None]]:
     """
@@ -358,8 +253,38 @@ def get_volunteers(dates: list[str] | None = None) -> list[dict[str, str | int |
     return volunteers
 
 
+# get regular volunteers
+def get_saved_volunteers():
+    """
+    This function gathers the information of saved volunteers.
+
+    No parameters shall be provided.
+
+    :return: A list of dictionaries containing volunteer information.
+    """
+
+    volunteers = []
+
+    with get_db_readonly() as (con, cur):
+        cur.execute("SELECT id, volunteer_number, name, reason, email, phone, note FROM volunteers;")
+
+        # extract the data
+        for row in cur.fetchall():
+            volunteers.append(dict(row))
+
+    return volunteers
+
+
 # pull strings of days with logs
 def get_dates_with_logs():
+    """
+    This function gathers the dates with information in the visitor and volunteer logs.
+
+    No parameters shall be provided.
+
+    :return: A list containing the unique dates inside both logs.
+    """
+
     with get_db_readonly() as (con, cur):
         dates = []
 
@@ -384,3 +309,57 @@ def get_dates_with_logs():
             dates.append(row["date"])
 
     return sorted(set(dates), reverse=True)
+
+
+# generate list for sign out page
+def get_sign_out_list():
+    with get_db_readonly() as (con, cur):
+        query = "SELECT id, datetime, name, hours FROM volunteer_log WHERE date (datetime) = date ('now', 'localtime');"
+        cur.execute(query)
+
+        volunteers = []
+
+        for row in cur.fetchall():
+            if row["hours"] != 0:
+                continue
+
+            start = datetime.strptime(row["datetime"], DATETIME_FORMAT)
+            end = datetime.now()
+            duration = end - start
+            hours = round(duration.total_seconds() / 3600, 2)
+
+            volunteers.append({
+                "id": row["id"],
+                "name": row["name"],
+                "hours": hours
+            })
+
+    return volunteers
+
+
+# sign out all volunteers for today
+def sign_out_all():
+    with get_db() as (con, cur):
+        query = "SELECT id, datetime, hours FROM volunteer_log WHERE date (datetime) = date ('now', 'localtime');"
+        cur.execute(query)
+
+        volunteers = []
+
+        for row in cur.fetchall():
+            if row["hours"] != 0:
+                continue
+
+            now = datetime.now()
+            duration = now - datetime.strptime(row["datetime"], DATETIME_FORMAT)
+            new_hours = round(duration.total_seconds() / 3600, 2)
+
+            volunteers.append({
+                "id": row["id"],
+                "hours": new_hours
+            })
+
+        for person in volunteers:
+            statement = "UPDATE volunteer_log SET hours = ? WHERE id = ?"
+            parameters = (person["hours"], person["id"])
+
+            cur.execute(statement, parameters)

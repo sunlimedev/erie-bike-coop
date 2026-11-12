@@ -5,6 +5,7 @@
 
 
 from flask_wtf import FlaskForm
+from wtforms import SelectField
 from wtforms.widgets.core import CheckboxInput, ListWidget
 from wtforms.validators import InputRequired, Optional, NumberRange, Regexp
 from wtforms.fields import StringField, EmailField, RadioField, SubmitField, IntegerField, PasswordField, SelectMultipleField, TelField
@@ -160,7 +161,7 @@ class VolunteerAddForm(FlaskForm):
 
 
 # for date_select.html
-class DateSelectForm(FlaskForm):
+class MultiDateSelectForm(FlaskForm):
     dates = SelectMultipleField(
         label="Dates",
         choices=[],
@@ -172,4 +173,16 @@ class DateSelectForm(FlaskForm):
     )
     selected = SubmitField(
         label="View selected"
+    )
+
+
+# for edit_date_select.html
+class SingleDateSelectForm(FlaskForm):
+    dates = RadioField(
+        label="Dates",
+        choices=[],
+        validators=[InputRequired(message="Please choose a date.")]
+    )
+    submit = SubmitField(
+        label="Edit selected"
     )

@@ -22,8 +22,8 @@ from flask_login import LoginManager, login_user, login_required, logout_user, c
 from user import User
 from config import DEBUG_HOST, DEBUG_PORT, DATETIME_FORMAT, FLASK_SECRET_KEY
 from database import get_db, get_db_readonly, get_saved_volunteers, get_visitors, get_sign_out_list, get_volunteers, get_dates_with_logs
-from forms import VisitorForm, VolunteerSignInForm, AdminLogInForm, VolunteerSignOutForm, VolunteerAddForm, DateSelectForm
-
+from forms import VisitorForm, VolunteerSignInForm, AdminLogInForm, VolunteerSignOutForm, VolunteerAddForm, \
+    MultiDateSelectForm, SingleDateSelectForm
 
 # ------------------ flask config --------------------------------------------------------------------------------------
 
@@ -322,11 +322,11 @@ def daily_recap():
 
 
 # view old data
-@app.route("/admin/view_data", methods=["GET", "POST"])
+@app.route("/admin/data/view", methods=["GET", "POST"])
 @login_required
 def view_data():
     # form
-    form = DateSelectForm()
+    form = MultiDateSelectForm()
 
     # data
     dates = get_dates_with_logs()
@@ -368,6 +368,25 @@ def view_data():
 
     # GET
     return render_template("date_select.html", form=form)
+
+
+# edit data of a day
+@app.route("/admin/data/edit", methods=["GET", "POST"])
+@login_required
+def edit_data():
+    # form
+    form = SingleDateSelectForm()
+
+    # data
+    dates = get_dates_with_logs()
+    form.dates.choices = [(date, date) for date in dates]
+
+    # POST
+    if form.validate_on_submit():
+        print(form.data)
+
+    # GET
+    return render_template("edit_date_select.html", form=form)
 
 
 # add regular volunteer form

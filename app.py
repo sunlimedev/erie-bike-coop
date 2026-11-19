@@ -8,7 +8,7 @@
 # ------------------ imports -------------------------------------------------------------------------------------------
 
 
-import fcntl
+# import fcntl
 import socket
 import struct
 
@@ -22,8 +22,7 @@ from flask_login import LoginManager, login_user, login_required, logout_user, c
 from user import User
 from config import DEBUG_HOST, DEBUG_PORT, DATE_FORMAT, DATETIME_FORMAT, FLASK_SECRET_KEY
 from database import get_db, get_db_readonly, get_saved_volunteers, get_visitors, get_sign_out_list, get_volunteers, get_dates_with_logs
-from forms import VisitorForm, VolunteerSignInForm, AdminLogInForm, VolunteerSignOutForm, VolunteerAddForm, \
-    MultiDateSelectForm, SingleDateSelectForm, DataEditForm
+from forms import VisitorForm, VolunteerSignInForm, AdminLogInForm, VolunteerSignOutForm, VolunteerAddForm, MultiDateSelectForm, SingleDateSelectForm, DataEditForm
 
 # ------------------ flask config --------------------------------------------------------------------------------------
 
@@ -101,7 +100,7 @@ def visitor_form():
 @app.get("/volunteer/options")
 def volunteer_options():
     # GET
-    return render_template("volunteer.html")
+    return render_template("volunteer_options.html")
 
 
 # volunteer form with hour tracking

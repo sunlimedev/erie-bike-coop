@@ -17,7 +17,7 @@
         <!-- dates -->
         <div class="flex flex-col {% if form.dates.choices | length > 7 %}h-130{% endif %} overflow-y-auto">
             <div class="font-semibold text-gray-700 text-2xl pb-1">
-                Select dates with data to view:
+                Select dates to view:
             </div>
             <ul class="flex flex-col gap-3 text-xl text-gray-700">
             {% for date in form.dates %}

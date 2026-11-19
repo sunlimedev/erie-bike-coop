@@ -47,7 +47,8 @@
                             Hours:
                         </span>
                         <span class="w-2/9">
-                            {{ entry.form.duration() }}
+                            {# this frontend only minimum validation is intentional to keep volunteers from being re-signed in #}
+                            {{ entry.form.duration(min="0.01") }}
                             {{ entry.form.arrival_time(type="hidden") }}
                         </span>
                     {% endif %}

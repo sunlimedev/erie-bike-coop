@@ -5,7 +5,7 @@
 
 
 from flask_wtf import FlaskForm
-from wtforms import SelectField
+from wtforms import Form, TimeField, FormField, FieldList, FloatField
 from wtforms.widgets.core import CheckboxInput, ListWidget
 from wtforms.validators import InputRequired, Optional, NumberRange, Regexp
 from wtforms.fields import StringField, EmailField, RadioField, SubmitField, IntegerField, PasswordField, SelectMultipleField, TelField
@@ -176,13 +176,47 @@ class MultiDateSelectForm(FlaskForm):
     )
 
 
-# for edit_date_select.html
+# for select_edit_data.html
 class SingleDateSelectForm(FlaskForm):
-    dates = RadioField(
+    date = RadioField(
         label="Dates",
         choices=[],
         validators=[InputRequired(message="Please choose a date.")]
     )
     submit = SubmitField(
         label="Edit selected"
+    )
+
+
+# for edit_data.html
+class DataEditSubForm(Form):
+    # make hidden in form
+    id = IntegerField(
+        label='ID'
+    )
+    name = StringField(
+        label='Name'
+    )
+    arrival_time = TimeField(
+        label='Arrival Time',
+        format='%H:%M',
+        validators=[InputRequired(message="Please specify a time for all fields.")],
+    )
+    duration = FloatField(
+        label='Duration (Hours)',
+        validators=[
+            InputRequired(message="Please specify a duration for all fields."),
+            NumberRange(min=0, max=24, message="Hours must be between 0.01 and 24.")
+        ],
+        render_kw={"step": "0.01"}
+    )
+
+
+# for edit_data.html
+class DataEditForm(FlaskForm):
+    items = FieldList(
+        FormField(DataEditSubForm)
+    )
+    submit = SubmitField(
+        label='Save changes'
     )

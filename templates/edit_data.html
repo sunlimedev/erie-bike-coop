@@ -1,10 +1,68 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends "_base.html" %}
 
-</body>
-</html>
+{% block title %}Edit Data{% endblock %}
+
+{% block content %}
+    <form method="POST" class="w-4xl flex flex-col bg-gray-50 rounded-xl p-5 gap-5 border-2 border-gray-100">
+        <!-- csrf token -->
+        {{ form.hidden_tag() }}
+        <!-- validation error -->
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <div id="alert" class="w-full p-5 text-2xl rounded-lg text-red-600 border-2 border-red-600 bg-red-200">
+            {{ messages[-1] }}
+        </div>
+        {% endif %}
+        {% endwith %}
+        <!-- volunteers -->
+        <div class="flex flex-col">
+            <div class="font-semibold text-gray-700 text-2xl pb-1">
+                Edit the arrival time or hours of volunteers:
+            </div>
+            <ul class="flex flex-col gap-3 text-xl text-gray-700">
+                {% for entry in form.items %}
+                <li class="w-full flex justify-between p-3 bg-white rounded-lg border-2 border-gray-100">
+                    <!-- non-editable name and hidden ID -->
+                    <span class="w-1/3">
+                        {{ entry.form.id(type="hidden") }}
+                        {{ entry.form.name.data }}
+                        {{ entry.form.name(type="hidden") }}
+                    </span>
+                    {% if entry.form.duration.data == 0 %}
+                        <span class="w-1/3">
+                            Here
+                        </span>
+                        <span class="w-1/9">
+                            Arrival:
+                        </span>
+                        <span class="w-2/9">
+                            {{ entry.form.arrival_time() }}
+                            {{ entry.form.duration(type="hidden") }}
+                        </span>
+                    {% else %}
+                        <span class="w-1/3">
+                            Signed out
+                        </span>
+                        <span class="w-1/9">
+                            Hours:
+                        </span>
+                        <span class="w-2/9">
+                            {{ entry.form.duration() }}
+                            {{ entry.form.arrival_time(type="hidden") }}
+                        </span>
+                    {% endif %}
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        <!-- cancel and submit -->
+        <div class="grid grid-cols-2 gap-3">
+            <a href="{{ url_for('select_edit_data') }}" class="font-semibold rounded-lg text-orange-600 text-center p-3 border-2 border-orange-600 text-xl hover:bg-gray-200">
+                Cancel
+            </a>
+            <div>
+                {{ form.submit(class_="w-full font-semibold rounded-lg p-3 bg-orange-600 border-2 border-orange-600 text-xl text-gray-50 hover:bg-orange-700 hover:border-orange-700") }}
+            </div>
+        </div>
+    </form>
+{% endblock %}

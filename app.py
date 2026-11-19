@@ -20,10 +20,10 @@ from flask import Flask, render_template, redirect, url_for, flash, request, jso
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 
 from user import User
-from config import DEBUG_HOST, DEBUG_PORT, DATETIME_FORMAT, FLASK_SECRET_KEY
+from config import DEBUG_HOST, DEBUG_PORT, DATE_FORMAT, DATETIME_FORMAT, FLASK_SECRET_KEY
 from database import get_db, get_db_readonly, get_saved_volunteers, get_visitors, get_sign_out_list, get_volunteers, get_dates_with_logs
 from forms import VisitorForm, VolunteerSignInForm, AdminLogInForm, VolunteerSignOutForm, VolunteerAddForm, \
-    MultiDateSelectForm, SingleDateSelectForm
+    MultiDateSelectForm, SingleDateSelectForm, DataEditForm
 
 # ------------------ flask config --------------------------------------------------------------------------------------
 
@@ -370,23 +370,70 @@ def view_data():
     return render_template("date_select.html", form=form)
 
 
-# edit data of a day
-@app.route("/admin/data/edit", methods=["GET", "POST"])
+# select day to edit data
+@app.route("/admin/data/select", methods=["GET", "POST"])
 @login_required
-def edit_data():
+def select_edit_data():
     # form
     form = SingleDateSelectForm()
 
     # data
     dates = get_dates_with_logs()
-    form.dates.choices = [(date, date) for date in dates]
+    form.date.choices = [(date, date) for date in dates]
 
     # POST
     if form.validate_on_submit():
-        print(form.data)
+        # invalid form
+        if form.date.data is None or form.date.data == "" or form.date.data not in dates:
+            flash("Please select a date from the list.")
+            return render_template("select_edit_data.html", form=form)
+        # valid submission
+        return redirect(url_for("edit_data", date=form.date.data))
 
     # GET
-    return render_template("edit_date_select.html", form=form)
+    return render_template("select_edit_data.html", form=form)
+
+
+# data edit
+@app.route("/admin/data/edit", methods=["GET", "POST"])
+@login_required
+def edit_data():
+    # data
+    date = request.args.get("date", f"{datetime.now().strftime('%Y-%m-%d')}")
+    volunteers = get_volunteers([date])
+
+    for volunteer in volunteers:
+        volunteer.pop("reason", None)
+        volunteer.pop("email", None)
+        volunteer.pop("note", None)
+        volunteer["arrival_time"] = datetime.strptime(volunteer.pop("datetime"), DATETIME_FORMAT).time() # type: ignore
+
+        volunteer["duration"] = volunteer.pop("hours")
+
+    # form
+    form = DataEditForm(data={"items": volunteers})
+
+    if form.validate_on_submit():
+        # data comes in dict like {"items": [{}, {}, {}]}
+        data = form.data["items"]
+        date_obj = datetime.strptime(date, DATE_FORMAT).date()
+
+        with get_db() as (con, cur):
+            for change in data:
+                combo = datetime.combine(date_obj, change["arrival_time"])
+                combo_string = combo.strftime(DATETIME_FORMAT)
+
+                statement = """
+                    UPDATE volunteer_log
+                    SET datetime = ?, hours = ?
+                    WHERE id = ?"""
+                parameters = [combo_string, change["duration"], change["id"]]
+                cur.execute(statement, parameters)
+
+        flash("Changes saved.")
+        return redirect(url_for("admin_panel"))
+
+    return render_template("edit_data.html", form=form, date=date)
 
 
 # add regular volunteer form

@@ -15,15 +15,15 @@
         {% endif %}
         {% endwith %}
         <!-- dates -->
-        <div class="flex flex-col {% if form.dates.choices | length > 7 %}h-130{% endif %} overflow-y-auto">
+        <div class="flex flex-col {% if form.date.choices | length > 7 %}h-130{% endif %} overflow-y-auto">
             <div class="font-semibold text-gray-700 text-2xl pb-1">
                 Select a date to edit:
             </div>
             <ul class="flex flex-col gap-3 text-xl text-gray-700">
-            {% for date in form.dates %}
+            {% for date in form.date %}
                 <li>
                     {{ date(class_="peer sr-only") }}
-                    {{ date.label(class_="flex flex-row justify-between block p-3 {% if form.dates.choices | length > 7 %}mr-5{% endif %} rounded-lg border-2 border-gray-400 bg-gray-100 rounded cursor-pointer hover:bg-orange-50 hover:border-orange-600 hover:text-orange-600 peer-checked:bg-orange-200 peer-checked:border-orange-600 peer-checked:text-orange-600 peer-checked:hover:bg-orange-200 peer-checked:hover:border-orange-600 peer-checked:hover:text-orange-600") }}
+                    {{ date.label(class_="flex flex-row justify-between block p-3 {% if form.date.choices | length > 7 %}mr-5{% endif %} rounded-lg border-2 border-gray-400 bg-gray-100 rounded cursor-pointer hover:bg-orange-50 hover:border-orange-600 hover:text-orange-600 peer-checked:bg-orange-200 peer-checked:border-orange-600 peer-checked:text-orange-600 peer-checked:hover:bg-orange-200 peer-checked:hover:border-orange-600 peer-checked:hover:text-orange-600") }}
                 </li>
             {% endfor %}
             </ul>
